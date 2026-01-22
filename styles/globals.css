@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+/* Lector FSL Font Faces - from Framer with lining figures support */
+@font-face {
+  font-family: "Lector FSL";
+  src: url("https://framerusercontent.com/assets/vVIFTY2PuwIapN7qdnad4UmbNg.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Lector FSL";
+  src: url("https://framerusercontent.com/assets/gIKaTQlrDZ7Ii4BzPli1xVtOIIE.woff2") format("woff2");
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
 @theme {
   --color-content: #000000;
   --color-metadata: #6B6B6B;
@@ -15,7 +32,8 @@
   --color-background: #FFFFFF;
 
   /* Typography */
-  --font-body: var(--font-lector), Georgia, serif;
+  --font-lector: "Lector FSL", Georgia, serif;
+  --font-body: var(--font-lector);
   --font-size-base: 16px;
   --tracking-body: -0.01em;
   --leading-body: 1.4;
@@ -34,13 +52,15 @@
   --space-8: 64px;
 }
 
-@layer base {
-  body {
-    font-family: var(--font-body);
-    font-size: var(--font-size-base);
-    letter-spacing: var(--tracking-body);
-    line-height: var(--leading-body);
-    color: var(--color-content);
-    background-color: var(--color-background);
-  }
+body {
+  font-family: "Lector FSL", Georgia, serif !important;
+  font-size: var(--font-size-base);
+  letter-spacing: var(--tracking-body);
+  line-height: var(--leading-body);
+  color: var(--color-content);
+  background-color: var(--color-background);
+  font-feature-settings: 'lnum' on, 'kern' on, 'liga' on;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
