@@ -26,12 +26,25 @@ npm run lint   # Run ESLint
 
 ## Design System
 
-Defined in `styles/globals.css` using Tailwind v4 `@theme` syntax:
+Defined in `styles/globals.css` using CSS custom properties:
 
-- **Colors**: content (#000), metadata (#6B6B6B), interactive (#8B6B5A), background (#FFF)
-- **Typography**: Georgia serif placeholder (Lector font to be added later)
-- **Base size**: 16px
-- **Animation defaults**: 400ms ease-out, 100ms stagger delay
+**Colors**:
+- content (#000), metadata (#6B6B6B), interactive (#8B6B5A terracotta), background (#FFF)
+- Defined in both `@theme` (for Tailwind) and `:root` (for direct CSS use)
+
+**Typography**:
+- Font: Lector (Georgia fallback) - `--font-body`
+- Base size: 16px - `--font-size-base`
+- Letter spacing: -1% (-0.01em) - `--tracking-body`
+- Line height: 140% (1.4) - `--leading-body`
+
+**Spacing** (8px base unit):
+- `--space-1` (8px), `--space-2` (16px), `--space-3` (24px), `--space-4` (32px), `--space-6` (48px), `--space-8` (64px)
+
+**Animation**:
+- Duration: 400ms - `--duration-default`
+- Easing: ease-out - `--easing-default`
+- Stagger delay: 100ms - `--stagger-delay`
 
 ## Architecture
 
@@ -40,11 +53,12 @@ Defined in `styles/globals.css` using Tailwind v4 `@theme` syntax:
 MDX content is managed through a custom loading system (`lib/content.ts`) using gray-matter for frontmatter parsing:
 
 **CaseStudy schema** (`content/case-studies/*.mdx`):
-- title, client, protected (boolean), sequence (number)
+- title, client, protected (boolean), sequence (number), summary, tags (string[]), diptychs (Diptych[])
+- Diptych type: text (markdown), media (type/src/alt/hasAudio/posterTime), ratio (50-50/40-60/60-40), alignment (top/center/bottom)
 - Accessed via `getAllCaseStudies()`, `getCaseStudyBySlug()`
 
 **Academy schema** (`content/academy/*.mdx`):
-- title, type (enum: experiment/tool/exploration), sequence (number)
+- title, type (enum: experiment/tool/exploration), sequence (number), summary, tags (string[])
 - Accessed via `getAllAcademy()`, `getAcademyBySlug()`
 
 **Photos** (`content/photos.json`):
@@ -65,10 +79,12 @@ MDX content is managed through a custom loading system (`lib/content.ts`) using 
 
 ```
 /components
-  /ui           Base UI components
-  /navigation   Navigation card system
-  /diptych      Case study content unit (diptych pattern)
+  /ui           Base UI components (PageShell for consistent layout)
+  /navigation   Navigation card system (to be built)
+  /diptych      Case study content unit (to be built)
 ```
+
+**PageShell** (`components/ui/PageShell.tsx`): Provides consistent padding, max-width constraints, and the "frame within frame" structure for all pages.
 
 ## Key Technical Details
 
@@ -82,9 +98,24 @@ MDX content is managed through a custom loading system (`lib/content.ts`) using 
 
 All content types use a `sequence` field for manual ordering. When displaying content, always sort by sequence number ascending.
 
+## Design Philosophy
+
+**"Machine for reading"**: Every element serves the consumer's ability to absorb what's showcased. Methods must be optimized for the value the audience should take away.
+
+**Diptych pattern**: Two-panel layout (text left, media right) inspired by presentation slides. One idea per unit, revealed through scrolling.
+
+**Video behavior**:
+- hasAudio: false → autoplay, muted, loop (behaves like animated image)
+- hasAudio: true → paused by default with visible controls
+
+**Link language**:
+- External links: ↗ (arrow pointing out)
+- Internal navigation: → (arrow pointing right)
+
 ## Implementation Philosophy
 
 - Keep solutions minimal and focused
 - Don't add features beyond what's requested
 - Everything should serve readability and content consumption
-- Use system serif font until Lector font files are added
+- Typography-forward, generous whitespace, terracotta (#8B6B5A) as only accent color
+- Animation should feel intentional and unhurried, not snappy or performative
