@@ -5,29 +5,42 @@
   --color-metadata: #6B6B6B;
   --color-interactive: #8B6B5A;
   --color-background: #FFFFFF;
-
-  --font-family-serif: Georgia, serif;
-
-  --ease-out: cubic-bezier(0, 0, 0.2, 1);
 }
 
 :root {
+  /* Colors */
+  --color-content: #000000;
+  --color-metadata: #6B6B6B;
+  --color-interactive: #8B6B5A;
+  --color-background: #FFFFFF;
+
+  /* Typography */
+  --font-body: 'Lector', Georgia, serif;
+  --font-size-base: 16px;
+  --tracking-body: -0.01em;
+  --leading-body: 1.4;
+
   /* Animation */
-  --animation-duration: 400ms;
-  --animation-easing: var(--ease-out);
-  --animation-stagger-delay: 100ms;
+  --duration-default: 400ms;
+  --easing-default: ease-out;
+  --stagger-delay: 100ms;
+
+  /* Spacing — base unit 8px */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-6: 48px;
+  --space-8: 64px;
 }
 
 @layer base {
   body {
-    background-color: var(--color-background);
+    font-family: var(--font-body);
+    font-size: var(--font-size-base);
+    letter-spacing: var(--tracking-body);
+    line-height: var(--leading-body);
     color: var(--color-content);
-    font-family: var(--font-family-serif);
-    font-size: 16px;
-  }
-
-  * {
-    transition-duration: var(--animation-duration);
-    transition-timing-function: var(--animation-easing);
+    background-color: var(--color-background);
   }
 }

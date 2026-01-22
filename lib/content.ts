@@ -4,12 +4,30 @@ import matter from 'gray-matter';
 
 const contentDirectory = path.join(process.cwd(), 'content');
 
+export interface DiptychMedia {
+  type: 'image' | 'video';
+  src: string;
+  alt: string;
+  hasAudio: boolean;
+  posterTime?: number;
+}
+
+export interface Diptych {
+  text: string;
+  media: DiptychMedia;
+  ratio: '50-50' | '40-60' | '60-40';
+  alignment: 'top' | 'center' | 'bottom';
+}
+
 export interface CaseStudy {
   slug: string;
   title: string;
   client: string;
   protected: boolean;
   sequence: number;
+  summary: string;
+  tags: string[];
+  diptychs: Diptych[];
   content: string;
   url: string;
 }
@@ -19,6 +37,8 @@ export interface Academy {
   title: string;
   type: 'experiment' | 'tool' | 'exploration';
   sequence: number;
+  summary: string;
+  tags: string[];
   content: string;
   url: string;
 }
@@ -45,6 +65,9 @@ export function getAllCaseStudies(): CaseStudy[] {
       client: data.client,
       protected: data.protected || false,
       sequence: data.sequence,
+      summary: data.summary || '',
+      tags: data.tags || [],
+      diptychs: data.diptychs || [],
       content,
       url: `/works/${slug}`,
     };
@@ -65,6 +88,9 @@ export function getCaseStudyBySlug(slug: string): CaseStudy | null {
       client: data.client,
       protected: data.protected || false,
       sequence: data.sequence,
+      summary: data.summary || '',
+      tags: data.tags || [],
+      diptychs: data.diptychs || [],
       content,
       url: `/works/${slug}`,
     };
@@ -86,6 +112,8 @@ export function getAllAcademy(): Academy[] {
       title: data.title,
       type: data.type,
       sequence: data.sequence,
+      summary: data.summary || '',
+      tags: data.tags || [],
       content,
       url: `/academy/${slug}`,
     };
@@ -105,6 +133,8 @@ export function getAcademyBySlug(slug: string): Academy | null {
       title: data.title,
       type: data.type,
       sequence: data.sequence,
+      summary: data.summary || '',
+      tags: data.tags || [],
       content,
       url: `/academy/${slug}`,
     };
