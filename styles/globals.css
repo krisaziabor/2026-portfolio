@@ -15,7 +15,7 @@
   --color-background: #FFFFFF;
 
   /* Typography */
-  --font-body: 'Lector', Georgia, serif;
+  --font-body: var(--font-lector), Georgia, serif;
   --font-size-base: 16px;
   --tracking-body: -0.01em;
   --leading-body: 1.4;
