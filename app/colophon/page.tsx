@@ -27,8 +27,8 @@ export default function Colophon() {
   return (
     <div className="min-h-screen" style={{ backgroundColor: '#FFFFFF' }}>
       <div className="flex items-center justify-center min-h-screen py-12 px-8">
-        <div className="flex flex-col items-center w-full" style={{ maxWidth: '60%', gap: '32px' }}>
-        <div className="bg-white grid w-full" style={{ gridTemplateColumns: '43% 57%', height: '728px', borderRadius: '4px', border: '1px solid #dbd8d8', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)' }}>
+        <div className="flex flex-col items-center w-full" style={{ maxWidth: '62.5%', gap: '32px' }}>
+        <div className="bg-white grid w-full" style={{ gridTemplateColumns: '43% 57%', height: '728px', borderRadius: '4px', border: '1px solid #dbd8d8', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', backgroundColor: '#FCFCFC' }}>
           {/* Left Column */}
           <div
             className="flex flex-col justify-between h-full font-[family-name:var(--font-lector)] lector-font"
@@ -39,7 +39,7 @@ export default function Colophon() {
             }}
           >
             {/* External Links */}
-            <div className="flex flex-col" style={{ gap: '2px' }}>
+            <div className="flex flex-col">
               {externalLinks.map((link) => (
                 <a
                   key={link.label}
@@ -93,7 +93,7 @@ export default function Colophon() {
             </div>
 
             {/* Footer Metadata */}
-            <div className="flex flex-col gap-1" style={{ fontSize: '15px', color: 'rgba(0, 0, 0, 0.5)' }}>
+            <div className="flex flex-col" style={{ fontSize: '15px', color: 'rgba(0, 0, 0, 0.5)' }}>
               <p>Last updated {footer.lastUpdated}</p>
               <p>
                 Type in{' '}
