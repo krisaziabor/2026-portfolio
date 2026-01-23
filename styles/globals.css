@@ -50,6 +50,9 @@
   --space-4: 32px;
   --space-6: 48px;
   --space-8: 64px;
+
+  /* Link text breaking toggle - set to 'nowrap' to prevent breaks, 'normal' to allow wrapping */
+  --link-white-space: nowrap;
 }
 
 body {
@@ -63,4 +66,11 @@ body {
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Link text breaking control - toggle via --link-white-space variable */
+/* Set --link-white-space: nowrap; to prevent breaks (default) */
+/* Set --link-white-space: normal; to allow wrapping for responsiveness */
+a {
+  white-space: var(--link-white-space, nowrap);
 }
