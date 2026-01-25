@@ -1,5 +1,9 @@
+'use client';
+
+import { useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { motion } from 'framer-motion';
+import NavigationCard from '@/components/navigation/NavigationCard';
 
 const externalLinks = [
   { label: 'LinkedIn', href: 'https://linkedin.com/in/krisaziabor' },
@@ -24,22 +28,55 @@ const footer = {
 };
 
 export default function Colophon() {
+  const [isNavExpanded, setIsNavExpanded] = useState(false);
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#FFFFFF' }}>
-      <div className="flex items-center justify-center min-h-screen py-12 px-8">
-        <div className="flex flex-col items-center w-full" style={{ maxWidth: '62.5%', gap: '32px' }}>
-        <div className="bg-white grid w-full" style={{ gridTemplateColumns: '43% 57%', height: '728px', borderRadius: '4px', border: '1px solid #dbd8d8', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)', backgroundColor: '#FCFCFC' }}>
-          {/* Left Column */}
+    <div className="min-h-screen relative overflow-x-hidden" style={{ backgroundColor: '#F8F8F8' }}>
+      <div className="flex items-center justify-center min-h-screen py-12 px-8 pb-32">
+        <div className="flex flex-col items-center w-full" style={{ maxWidth: 'clamp(600px, 62.5%, 1200px)', gap: '32px', paddingBottom: '30px' }}>
+        <motion.div 
+          className="bg-white grid w-full grid-cols-1 md:grid-cols-[43%_57%] h-auto md:h-[728px]" 
+          style={{ 
+            borderRadius: '4px', 
+            border: '1px solid #dbd8d8', 
+            backgroundColor: '#FCFCFC',
+            overflow: 'hidden',
+            minWidth: 0
+          }}
+          animate={{
+            y: isNavExpanded ? -96 : 0, // Push up when nav expands (expanded height ~72px + gap ~24px)
+          }}
+          transition={{
+            duration: 0.4,
+            ease: [0.22, 1, 0.36, 1],
+          }}
+        >
+          {/* Right Column - appears first on mobile */}
+          <div className="flex items-center justify-center order-1 md:order-2" style={{ padding: '28px', minWidth: 0, overflow: 'hidden' }}>
+            <div className="relative aspect-[3/4]" style={{ width: '80%', height: '80%', maxWidth: '80%', maxHeight: '80%' }}>
+              <Image
+                src="/KristopherAziaborPortrait.jpeg"
+                alt="Portrait of Kristopher Aziabor"
+                fill
+                className="object-contain"
+                sizes="(max-width: 768px) 100vw, 60vw"
+              />
+            </div>
+          </div>
+
+          {/* Left Column - appears second on mobile */}
           <div
-            className="flex flex-col justify-between h-full font-[family-name:var(--font-lector)] lector-font"
+            className="flex flex-col font-[family-name:var(--font-lector)] lector-font order-2 md:order-1 md:h-full border-t border-[#EBEBEB] md:border-t-0 md:border-r"
             style={{
               fontSize: '15px',
-              borderRight: '1px solid #EBEBEB',
-              padding: '16px 24px 16px 20px'
+              padding: '16px 24px 16px 20px',
+              justifyContent: 'space-between',
+              minWidth: 0,
+              overflow: 'hidden'
             }}
           >
             {/* External Links */}
-            <div className="flex flex-col">
+            <div className="flex flex-col" style={{ gap: '0px' }}>
               {externalLinks.map((link) => (
                 <a
                   key={link.label}
@@ -55,7 +92,7 @@ export default function Colophon() {
             </div>
 
             {/* Bio Paragraphs */}
-            <div className="flex flex-col gap-6 my-8" style={{ color: '#000000' }}>
+            <div className="flex flex-col" style={{ color: '#000000', gap: '24px', marginTop: '32px', marginBottom: '32px' }}>
               <p>{bio[0]}</p>
               <p>
                 I study Computer Science and Fine Arts at{' '}
@@ -93,7 +130,7 @@ export default function Colophon() {
             </div>
 
             {/* Footer Metadata */}
-            <div className="flex flex-col" style={{ fontSize: '15px', color: 'rgba(0, 0, 0, 0.5)' }}>
+            <div className="flex flex-col" style={{ fontSize: '15px', color: 'rgba(0, 0, 0, 0.5)', gap: '0px' }}>
               <p>Last updated {footer.lastUpdated}</p>
               <p>
                 Type in{' '}
@@ -110,51 +147,17 @@ export default function Colophon() {
               <p>Built with {footer.builtWith}</p>
             </div>
           </div>
-
-          {/* Right Column */}
-          <div className="flex items-center justify-center" style={{ padding: '28px' }}>
-            <div className="relative aspect-[3/4]" style={{ width: '80%', height: '80%', maxWidth: '80%', maxHeight: '80%' }}>
-              <Image
-                src="/KristopherAziaborPortrait.jpeg"
-                alt="Portrait of Kristopher Aziabor"
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 100vw, 60vw"
-              />
-            </div>
-          </div>
+        </motion.div>
         </div>
+      </div>
 
-        {/* Footer Navigation */}
-        <div
-          className="flex justify-center items-center font-[family-name:var(--font-lector)] lector-font"
-          style={{ gap: '100px' }}
-        >
-          <Link
-            href="/"
-            className="rounded border hover:opacity-80"
-            style={{
-              color: '#000000',
-              borderColor: '#dbd8d8',
-              padding: '20px 36px',
-              backgroundColor: '#FFFFFF'
-            }}
-          >
-            Kristopher Aziabor
-          </Link>
-          <Link
-            href="/colophon"
-            className="rounded border hover:opacity-80"
-            style={{
-              color: '#000000',
-              borderColor: '#dbd8d8',
-              padding: '20px 36px',
-              backgroundColor: '#FFFFFF'
-            }}
-          >
-            Colophon
-          </Link>
-        </div>
+      {/* Sticky Navigation Card */}
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-8 pointer-events-none">
+        <div className="pointer-events-auto">
+          <NavigationCard 
+            currentPage={{ label: 'Colophon', href: '/colophon' }}
+            onExpandedChange={setIsNavExpanded}
+          />
         </div>
       </div>
     </div>
