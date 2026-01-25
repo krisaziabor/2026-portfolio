@@ -10,7 +10,7 @@ export default function NavTestPage() {
         </p>
       </div>
       <div className="flex min-h-screen items-end justify-center pb-32">
-        <NavigationCard />
+        <NavigationCard currentPage={{ label: 'Photo', href: '/photo' }} />
       </div>
     </div>
   );
