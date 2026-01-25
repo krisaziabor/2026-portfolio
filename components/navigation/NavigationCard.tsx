@@ -77,7 +77,7 @@ export default function NavigationCard({ currentPage, onExpandedChange }: Naviga
     <motion.div
       ref={cardRef}
       onClick={() => setIsExpanded(!isExpanded)}
-      className="relative cursor-pointer select-none overflow-hidden rounded-md border border-[#F0F0F0] bg-white"
+      className="relative cursor-pointer select-none overflow-hidden rounded-sm border border-[#F0F0F0] bg-white"
       layout
       transition={{
         duration: isExpanded ? expandDuration : totalCollapseTime, // Match collapse timing when collapsing
