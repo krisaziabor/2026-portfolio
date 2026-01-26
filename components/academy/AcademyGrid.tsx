@@ -8,6 +8,22 @@ interface AcademyGridProps {
 }
 
 export default function AcademyGrid({ items }: AcademyGridProps) {
+  // Base height for all cards (uniform baseline)
+  const baseHeight = 500;
+  // Max height variation - cards can be slightly taller but not much more
+  const maxHeightVariation = 100;
+  
+  // Calculate height - uniform for most, slightly taller for 100% width
+  const getHeightForItem = (item: AcademyItem): number => {
+    const widthPercent = parseFloat(item.width.replace('%', ''));
+    // 100% width cards can be taller
+    if (widthPercent === 100) {
+      return baseHeight + maxHeightVariation;
+    }
+    // All other cards use uniform height
+    return baseHeight;
+  };
+
   // Group items by row
   const rows = items.reduce((acc, item) => {
     if (!acc[item.row]) {
@@ -30,6 +46,7 @@ export default function AcademyGrid({ items }: AcademyGridProps) {
             <AcademyCard
               key={`${rowNumber}-${index}`}
               item={item}
+              height={getHeightForItem(item)}
             />
           ))}
         </div>
