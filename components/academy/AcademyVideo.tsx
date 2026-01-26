@@ -40,7 +40,7 @@ export default function AcademyVideo({ src, alt, caption }: AcademyVideoProps) {
   }, []);
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full h-full flex items-center justify-center" style={{ maxWidth: '100%', maxHeight: '100%' }}>
       <video
         ref={videoRef}
         src={src}
@@ -48,7 +48,8 @@ export default function AcademyVideo({ src, alt, caption }: AcademyVideoProps) {
         muted
         loop
         playsInline
-        className="w-full h-auto"
+        className="object-contain"
+        style={{ maxWidth: '100%', maxHeight: '100%', width: 'auto', height: 'auto' }}
       />
       {caption && (
         <p className="text-metadata text-sm mt-[var(--space-2)]">
