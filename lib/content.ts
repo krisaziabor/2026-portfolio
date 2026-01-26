@@ -32,15 +32,20 @@ export interface CaseStudy {
   url: string;
 }
 
-export interface Academy {
-  slug: string;
+export interface AcademyContentBlock {
+  type: 'image' | 'video' | 'text';
+  src?: string;
+  content?: string;
+  alt?: string;
+  caption?: string;
+}
+
+export interface AcademyItem {
   title: string;
-  type: 'experiment' | 'tool' | 'exploration';
-  sequence: number;
-  summary: string;
-  tags: string[];
-  content: string;
-  url: string;
+  row: number;
+  width: string;
+  link?: string;
+  contentBlocks: AcademyContentBlock[];
 }
 
 function getContentFiles(dir: string): string[] {
@@ -99,46 +104,35 @@ export function getCaseStudyBySlug(slug: string): CaseStudy | null {
   }
 }
 
-export function getAllAcademy(): Academy[] {
-  const files = getContentFiles('academy');
-  const academy = files.map((filename) => {
-    const slug = filename.replace(/\.mdx$/, '');
-    const fullPath = path.join(contentDirectory, 'academy', filename);
-    const fileContents = fs.readFileSync(fullPath, 'utf8');
-    const { data, content } = matter(fileContents);
-
-    return {
-      slug,
-      title: data.title,
-      type: data.type,
-      sequence: data.sequence,
-      summary: data.summary || '',
-      tags: data.tags || [],
-      content,
-      url: `/academy/${slug}`,
-    };
-  });
-
-  return academy.sort((a, b) => a.sequence - b.sequence);
-}
-
-export function getAcademyBySlug(slug: string): Academy | null {
+export function getAllAcademyItems(): AcademyItem[] {
   try {
-    const fullPath = path.join(contentDirectory, 'academy', `${slug}.mdx`);
+    const fullPath = path.join(contentDirectory, 'academy', 'index.mdx');
     const fileContents = fs.readFileSync(fullPath, 'utf8');
-    const { data, content } = matter(fileContents);
 
-    return {
-      slug,
-      title: data.title,
-      type: data.type,
-      sequence: data.sequence,
-      summary: data.summary || '',
-      tags: data.tags || [],
-      content,
-      url: `/academy/${slug}`,
-    };
+    // Split by --- delimiters and filter out empty sections
+    const sections = fileContents.split(/^---$/m).filter(section => section.trim());
+
+    const items = sections.map((section) => {
+      const { data } = matter(`---\n${section.trim()}\n---`);
+
+      // Prefix src paths with /academy/
+      const contentBlocks = (data.contentBlocks || []).map((block: AcademyContentBlock) => ({
+        ...block,
+        src: block.src ? `/academy/${block.src}` : undefined,
+      }));
+
+      return {
+        title: data.title,
+        row: data.row,
+        width: data.width,
+        link: data.link,
+        contentBlocks,
+      };
+    });
+
+    // Sort by row number, maintaining order within each row
+    return items.sort((a, b) => a.row - b.row);
   } catch {
-    return null;
+    return [];
   }
 }

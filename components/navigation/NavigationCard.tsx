@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface NavLink {
   label: string;
@@ -17,23 +18,55 @@ const allPages: NavLink[] = [
   { label: 'Colophon', href: '/colophon' }, // Priority 4 (lowest)
 ];
 
+// Map paths to page info
+const pathToPageMap: Record<string, NavLink> = {
+  '/': { label: 'Home', href: '/' },
+  '/works': { label: 'Work', href: '/works' },
+  '/academy': { label: 'Academy', href: '/academy' },
+  '/photo': { label: 'Photo', href: '/photo' },
+  '/colophon': { label: 'Colophon', href: '/colophon' },
+};
+
 interface NavigationCardProps {
-  currentPage: { label: string; href: string };
+  currentPage?: { label: string; href: string };
   onExpandedChange?: (isExpanded: boolean) => void;
 }
 
-export default function NavigationCard({ currentPage, onExpandedChange }: NavigationCardProps) {
+export default function NavigationCard({ currentPage: propCurrentPage, onExpandedChange }: NavigationCardProps) {
+  const pathname = usePathname();
   const [isExpanded, setIsExpanded] = useState(false);
   const [navWidth, setNavWidth] = useState<number | null>(null);
+  const [displayedCurrentPage, setDisplayedCurrentPage] = useState<NavLink | null>(null);
   const widthMeasureRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
+  // Determine actual current page from pathname or prop
+  const actualCurrentPage = useMemo(() => {
+    if (propCurrentPage) return propCurrentPage;
+    return pathToPageMap[pathname] || pathToPageMap['/'];
+  }, [pathname, propCurrentPage]);
+
+  // Initialize displayed current page
+  useEffect(() => {
+    if (!displayedCurrentPage) {
+      setDisplayedCurrentPage(actualCurrentPage);
+    }
+  }, [actualCurrentPage, displayedCurrentPage]);
+
+  // Sync displayed page with actual page after navigation completes
+  useEffect(() => {
+    setDisplayedCurrentPage(actualCurrentPage);
+  }, [actualCurrentPage]);
+
+  // Get current page for display
+  const currentPageForDisplay = displayedCurrentPage || actualCurrentPage;
+
   // Order links by priority: other pages first (by priority), then current page at bottom
   const orderedNavLinks = useMemo(() => {
-    const otherPages = allPages.filter(page => page.href !== currentPage.href);
+    const otherPages = allPages.filter(page => page.href !== currentPageForDisplay.href);
     // Other pages are already in priority order, then add current page at the end
-    return [...otherPages, currentPage];
-  }, [currentPage]);
+    return [...otherPages, currentPageForDisplay];
+  }, [currentPageForDisplay]);
 
   // Measure width of expanded state
   useEffect(() => {
@@ -128,28 +161,17 @@ export default function NavigationCard({ currentPage, onExpandedChange }: Naviga
                 ease: isExpanded ? [0.22, 1, 0.36, 1] : [0.4, 0, 0.2, 1], // Smoother ease-out for collapse
               }}
             >
+              {/* Other pages (only visible when expanded) */}
               <AnimatePresence>
-                {orderedNavLinks.map((link, index) => {
-                  const isCurrentPage = link.href === currentPage.href;
-                  const isVisible = isExpanded || isCurrentPage;
-                  const currentPageIndex = orderedNavLinks.findIndex((l) => l.href === currentPage.href);
-
-                  if (!isVisible) return null;
-
-                  // Calculate animation delays
-                  const shouldAnimate = !isCurrentPage;
-                  
-                  // Expanding: bottom-to-top (items closer to bottom animate first)
+                {isExpanded && orderedNavLinks.slice(0, -1).map((link, index) => {
+                  const currentPageIndex = orderedNavLinks.length - 1;
                   const distanceFromBottom = currentPageIndex - index - 1;
-                  const expandDelay = shouldAnimate ? distanceFromBottom * expandStaggerDelay : 0;
+                  const expandDelay = distanceFromBottom * expandStaggerDelay;
                   
-                  // Collapsing: all items disappear simultaneously (no stagger)
-                  const collapseDelay = 0;
-
                   return (
                     <motion.div
-                      key={link.label}
-                      initial={isCurrentPage ? false : { opacity: 0, y: -10 }}
+                      key={`link-${link.href}-${index}`}
+                      initial={{ opacity: 0, y: -10 }}
                       animate={{
                         opacity: 1,
                         y: 0,
@@ -163,8 +185,8 @@ export default function NavigationCard({ currentPage, onExpandedChange }: Naviga
                         opacity: 0,
                         y: -10,
                         transition: {
-                          delay: collapseDelay,
-                          duration: collapseDuration, // Almost instantaneous duration for collapse
+                          delay: 0,
+                          duration: collapseDuration,
                           ease: 'easeOut',
                         },
                       }}
@@ -175,13 +197,58 @@ export default function NavigationCard({ currentPage, onExpandedChange }: Naviga
                         style={{
                           color: '#000000',
                         }}
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Immediately update displayed current page for seamless transition
+                          if (link.href !== currentPageForDisplay.href) {
+                            setDisplayedCurrentPage(link);
+                            setIsExpanded(false);
+                          }
+                        }}
                       >
                         {link.label}
                       </Link>
                     </motion.div>
                   );
                 })}
+              </AnimatePresence>
+
+              {/* Current page title (always visible, transitions smoothly) */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={`current-${currentPageForDisplay.href}`}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                    transition: {
+                      duration: expandDuration,
+                      ease: [0.22, 1, 0.36, 1],
+                    },
+                  }}
+                  exit={{
+                    opacity: 0,
+                    y: 10,
+                    transition: {
+                      duration: expandDuration,
+                      ease: [0.22, 1, 0.36, 1],
+                    },
+                  }}
+                >
+                  <Link
+                    href={currentPageForDisplay.href}
+                    className="transition-opacity duration-500 ease-in-out hover:opacity-50"
+                    style={{
+                      color: '#000000',
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsExpanded(!isExpanded);
+                    }}
+                  >
+                    {currentPageForDisplay.label}
+                  </Link>
+                </motion.div>
               </AnimatePresence>
             </motion.div>
           </div>
