@@ -33,7 +33,7 @@ export interface CaseStudy {
 }
 
 export interface AcademyContentBlock {
-  type: 'image' | 'video' | 'text';
+  type: 'image' | 'video' | 'text' | 'photo';
   src?: string;
   content?: string;
   alt?: string;
@@ -42,8 +42,6 @@ export interface AcademyContentBlock {
 
 export interface AcademyItem {
   title: string;
-  row: number;
-  width: string;
   link?: string;
   contentBlocks: AcademyContentBlock[];
 }
@@ -123,15 +121,13 @@ export function getAllAcademyItems(): AcademyItem[] {
 
       return {
         title: data.title,
-        row: data.row,
-        width: data.width,
         link: data.link,
         contentBlocks,
       };
     });
 
-    // Sort by row number, maintaining order within each row
-    return items.sort((a, b) => a.row - b.row);
+    // Return items in the order they appear in the file
+    return items;
   } catch {
     return [];
   }
