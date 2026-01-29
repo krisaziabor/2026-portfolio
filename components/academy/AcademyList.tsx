@@ -25,7 +25,11 @@ function parseItalics(text: string): React.ReactNode[] {
       parts.push(text.slice(lastIndex, match.index));
     }
     // Add italicized text
-    parts.push(<em key={`italic-${keyCounter++}`}>{match[1]}</em>);
+    parts.push(
+      <em key={`italic-${keyCounter++}`} className="whitespace-normal">
+        {match[1]}
+      </em>
+    );
     lastIndex = regex.lastIndex;
   }
 
@@ -65,7 +69,8 @@ export default function AcademyList({ items, isNavExpanded = false }: AcademyLis
         style={{
           padding: '16px 24px 16px 20px',
           minWidth: 0,
-          overflow: 'auto'
+          overflow: 'auto',
+          fontSize: '15px'
         }}
       >
         {items.map((item, index) => {
@@ -82,17 +87,17 @@ export default function AcademyList({ items, isNavExpanded = false }: AcademyLis
                   href={item.link!.startsWith('http') ? item.link! : `https://${item.link!}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex items-start gap-1 transition-colors duration-[var(--duration-default)] ${
+                  className={`flex items-start gap-1 whitespace-normal transition-colors duration-[var(--duration-default)] ${
                     isActive ? 'text-interactive' : 'text-content hover:text-interactive'
                   }`}
                   onMouseEnter={() => setActiveIndex(index)}
                 >
-                  <span>{parseItalics(item.title)}</span>
+                  <span className="min-w-0 whitespace-normal">{parseItalics(item.title)}</span>
                   <span className="text-interactive">↗</span>
                 </a>
               ) : (
                 <div 
-                  className={`text-content transition-opacity duration-500 ease-in-out hover:opacity-50 ${
+                  className={`text-content whitespace-normal transition-opacity duration-500 ease-in-out hover:opacity-50 ${
                     isActive ? 'opacity-50' : ''
                   }`}
                   onMouseEnter={() => setActiveIndex(index)}
