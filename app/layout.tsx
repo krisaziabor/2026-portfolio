@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import '@/styles/globals.css';
 import { AgentationWrapper } from '@/components/AgentationWrapper';
+import EntryAnimationWrapper from '@/components/entry/EntryAnimationWrapper';
 
 export const metadata: Metadata = {
   title: 'Kristopher Aziabor',
@@ -15,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        {children}
+        <EntryAnimationWrapper>
+          {children}
+        </EntryAnimationWrapper>
         <AgentationWrapper />
       </body>
     </html>
