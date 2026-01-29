@@ -20,7 +20,7 @@ const allPages: NavLink[] = [
 
 // Map paths to page info
 const pathToPageMap: Record<string, NavLink> = {
-  '/': { label: 'Home', href: '/' },
+  '/': { label: 'Work', href: '/' },
   '/works': { label: 'Work', href: '/works' },
   '/academy': { label: 'Academy', href: '/academy' },
   '/photo': { label: 'Photo', href: '/photo' },
