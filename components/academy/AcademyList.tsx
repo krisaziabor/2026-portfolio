@@ -43,7 +43,7 @@ export default function AcademyList({ items, isNavExpanded = false }: AcademyLis
 
   return (
     <motion.div 
-      className="bg-white grid w-full grid-cols-1 md:grid-cols-[32%_68%] h-auto md:h-[728px]" 
+      className="bg-white grid w-full grid-cols-1 md:grid-cols-[32%_68%] h-auto md:min-h-[728px]" 
       style={{ 
         borderRadius: '4px', 
         border: '1px solid #dbd8d8', 
