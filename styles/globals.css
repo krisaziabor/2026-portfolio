@@ -79,3 +79,9 @@ a {
 em {
   white-space: nowrap;
 }
+
+/* Academy page allows title wrapping */
+.academy-page a,
+.academy-page em {
+  white-space: normal;
+}

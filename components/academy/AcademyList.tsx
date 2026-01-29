@@ -92,12 +92,14 @@ export default function AcademyList({ items, isNavExpanded = false }: AcademyLis
                   }`}
                   onMouseEnter={() => setActiveIndex(index)}
                 >
-                  <span className="min-w-0 whitespace-normal">{parseItalics(item.title)}</span>
-                  <span className="text-interactive">↗</span>
+                  <span className="min-w-0 flex-1 whitespace-normal pr-2">
+                    {parseItalics(item.title)}
+                  </span>
+                  <span className="text-interactive shrink-0">↗</span>
                 </a>
               ) : (
                 <div 
-                  className={`text-content whitespace-normal transition-opacity duration-500 ease-in-out hover:opacity-50 ${
+                  className={`text-content whitespace-normal pr-2 transition-opacity duration-500 ease-in-out hover:opacity-50 ${
                     isActive ? 'opacity-50' : ''
                   }`}
                   onMouseEnter={() => setActiveIndex(index)}
