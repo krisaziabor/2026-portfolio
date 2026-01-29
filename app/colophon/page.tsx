@@ -35,7 +35,7 @@ export default function Colophon() {
       <div className="flex items-center justify-center min-h-screen py-12 px-8 pb-32">
         <div className="flex flex-col items-center w-full" style={{ maxWidth: 'clamp(600px, 62.5%, 1200px)', gap: '32px', paddingBottom: '30px' }}>
         <motion.div 
-          className="bg-white grid w-full grid-cols-1 md:grid-cols-[43%_57%] h-auto md:h-[728px]" 
+          className="bg-white grid w-full grid-cols-1 md:grid-cols-[43%_57%] h-auto md:min-h-[728px]" 
           style={{ 
             borderRadius: '4px', 
             border: '1px solid #dbd8d8', 
