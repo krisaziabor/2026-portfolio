@@ -12,7 +12,7 @@ interface NavLink {
 
 // Define all pages with their priority (lower number = higher priority)
 const allPages: NavLink[] = [
-  { label: 'Work', href: '/works' },      // Priority 1 (highest)
+  { label: 'Work', href: '/' },      // Priority 1 (highest)
   { label: 'Academy', href: '/academy' }, // Priority 2
   { label: 'Photo', href: '/photo' },     // Priority 3
   { label: 'Colophon', href: '/colophon' }, // Priority 4 (lowest)
@@ -20,8 +20,8 @@ const allPages: NavLink[] = [
 
 // Map paths to page info
 const pathToPageMap: Record<string, NavLink> = {
-  '/': { label: 'Home', href: '/' },
-  '/works': { label: 'Work', href: '/works' },
+  '/': { label: 'Work', href: '/' },
+  '/works': { label: 'Work', href: '/' },
   '/academy': { label: 'Academy', href: '/academy' },
   '/photo': { label: 'Photo', href: '/photo' },
   '/colophon': { label: 'Colophon', href: '/colophon' },
