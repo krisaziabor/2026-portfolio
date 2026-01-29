@@ -1,13 +1,31 @@
-'use client';
-
 import NavigationCard from '@/components/navigation/NavigationCard';
+import { getPhotos } from '@/lib/photos';
 
 export default function Photo() {
+  const photos = getPhotos();
+
   return (
     <>
       <main className="min-h-screen p-8">
-        <h1 className="text-content mb-4">Photo</h1>
-        <p className="text-metadata">Photography gallery will go here.</p>
+        <div className="flex flex-col gap-12 pb-32">
+          <div>
+            <h1 className="text-content mb-2">Photo</h1>
+          </div>
+
+          <div className="flex flex-col gap-12">
+            {photos.map((photo) => (
+              <figure key={`${photo.index}-${photo.src}`} className="flex flex-col gap-4">
+                <figcaption className="text-metadata">{photo.title}</figcaption>
+                <img
+                  src={photo.src}
+                  alt={photo.title}
+                  className="w-full h-auto"
+                  loading={photo.index === 1 ? 'eager' : 'lazy'}
+                />
+              </figure>
+            ))}
+          </div>
+        </div>
       </main>
 
       {/* Sticky Navigation Card */}
