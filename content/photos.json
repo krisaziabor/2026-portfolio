@@ -1,17 +1,80 @@
 [
   {
     "index": 1,
-    "title": "Untitled (Market)",
-    "src": "/photos/001.jpg"
+    "title": "Untitled (BLACK BLUE BLACK BOY)",
+    "year": 2025,
+    "src": "/photos/001.JPG"
   },
   {
     "index": 2,
-    "title": "Untitled (Window)",
-    "src": "/photos/002.jpg"
+    "title": "Untitled (BLACK BLUE BLACK BOY)",
+    "year": 2025,
+    "src": "/photos/002.JPG"
   },
   {
     "index": 3,
-    "title": "Untitled (Street)",
-    "src": "/photos/003.jpg"
+    "title": "Untitled (BLACK BLUE BLACK BOY)",
+    "year": 2025,
+    "src": "/photos/003.JPG"
+  },
+  {
+    "index": 4,
+    "title": "Untitled (BLACK BLUE BLACK BOY)",
+    "year": 2025,
+    "src": "/photos/004.JPG"
+  },
+  {
+    "index": 5,
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photos/005.JPG"
+  },
+  {
+    "index": 6,
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photos/006.jpg"
+  },
+  {
+    "index": 7,
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photos/007.JPG"
+  },
+  {
+    "index": 8,
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photos/008.jpg"
+  },
+  {
+    "index": 9,
+    "title": "Emirates (Arsenal)",
+    "year": 2024,
+    "src": "/photos/009.jpeg"
+  },
+  {
+    "index": 10,
+    "title": "panopticon",
+    "year": 2022,
+    "src": "/photos/010.JPG"
+  },
+  {
+    "index": 11,
+    "title": "panopticon",
+    "year": 2022,
+    "src": "/photos/011.JPG"
+  },
+  {
+    "index": 12,
+    "title": "Self portait, Olde Common",
+    "year": 2019,
+    "src": "/photos/012.jpg"
+  },
+  {
+    "index": 13,
+    "title": "Self portait, Olde Common",
+    "year": 2019,
+    "src": "/photos/013.jpg"
   }
 ]
