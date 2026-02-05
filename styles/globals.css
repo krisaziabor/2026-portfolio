@@ -75,13 +75,7 @@ a {
   white-space: var(--link-white-space, nowrap);
 }
 
-/* Italicized text should not break across lines */
-em {
-  white-space: nowrap;
-}
-
-/* Academy page allows title wrapping */
-.academy-page a,
-.academy-page em {
+/* Academy page links: allow title text to wrap */
+.academy-page a {
   white-space: normal;
 }

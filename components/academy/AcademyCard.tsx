@@ -70,9 +70,14 @@ export default function AcademyCard({ item, height }: AcademyCardProps) {
                 </div>
               )}
 
-              {block.type === 'video' && block.src && (
+              {block.type === 'video' && (block.vimeoId || block.src) && (
                 <div className="w-full flex items-center justify-center" style={{ width: '85%' }}>
-                  <AcademyVideo src={block.src} alt={block.alt || ''} caption={block.caption} />
+                  <AcademyVideo
+                    vimeoId={block.vimeoId}
+                    src={block.src}
+                    alt={block.alt || ''}
+                    caption={block.caption}
+                  />
                 </div>
               )}
 
@@ -86,18 +91,19 @@ export default function AcademyCard({ item, height }: AcademyCardProps) {
         {/* Title and optional link - positioned at bottom left with reduced padding */}
         <div className="pr-[var(--space-6)] pl-[var(--space-2)] pb-[var(--space-2)] pt-[var(--space-2)] flex-shrink-0">
           <div className="flex items-start gap-1">
-            <h2 className="text-content text-base leading-[var(--leading-body)]">
-              {parseItalics(item.title)}
-            </h2>
-            {item.link && (
+            {item.link ? (
               <a
                 href={item.link.startsWith('http') ? item.link : `https://${item.link}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-interactive hover:opacity-70 transition-opacity duration-[var(--duration-default)] text-sm"
+                className="text-content text-base leading-[var(--leading-body)] text-interactive hover:opacity-70 transition-opacity duration-[var(--duration-default)]"
               >
-                ↗
+                {parseItalics(item.title)}
               </a>
+            ) : (
+              <h2 className="text-content text-base leading-[var(--leading-body)]">
+                {parseItalics(item.title)}
+              </h2>
             )}
           </div>
         </div>

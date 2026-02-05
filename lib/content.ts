@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
+import { getVimeoIdForAcademyVideo } from './academy-videos';
 
 const contentDirectory = path.join(process.cwd(), 'content');
 
@@ -35,6 +36,8 @@ export interface CaseStudy {
 export interface AcademyContentBlock {
   type: 'image' | 'video' | 'text' | 'photo';
   src?: string;
+  /** Vimeo video ID; when set, academy video uses Vimeo embed (autoplay, loop, mute, no controls) */
+  vimeoId?: string;
   content?: string;
   alt?: string;
   caption?: string;
@@ -113,11 +116,20 @@ export function getAllAcademyItems(): AcademyItem[] {
     const items = sections.map((section) => {
       const { data } = matter(`---\n${section.trim()}\n---`);
 
-      // Prefix src paths with /academy/
-      const contentBlocks = (data.contentBlocks || []).map((block: AcademyContentBlock) => ({
-        ...block,
-        src: block.src ? `/academy/${block.src}` : undefined,
-      }));
+      // Prefix src paths with /academy/; resolve Vimeo ID for video blocks
+      const contentBlocks = (data.contentBlocks || []).map((block: AcademyContentBlock) => {
+        const src = block.src ? `/academy/${block.src}` : undefined;
+        const filename = block.src ? path.basename(block.src) : undefined;
+        const vimeoId =
+          block.type === 'video' && filename
+            ? getVimeoIdForAcademyVideo(filename)
+            : undefined;
+        return {
+          ...block,
+          src,
+          ...(vimeoId && { vimeoId }),
+        };
+      });
 
       return {
         title: data.title,
