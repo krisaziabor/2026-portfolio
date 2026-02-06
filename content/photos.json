@@ -3,78 +3,60 @@
     "index": 1,
     "title": "Untitled (BLACK BLUE BLACK BOY)",
     "year": 2025,
-    "src": "/photos/001.JPG"
+    "src": "/photo/001.JPG"
   },
   {
     "index": 2,
     "title": "Untitled (BLACK BLUE BLACK BOY)",
     "year": 2025,
-    "src": "/photos/002.JPG"
+    "src": "/photo/002.JPG"
   },
   {
     "index": 3,
     "title": "Untitled (BLACK BLUE BLACK BOY)",
     "year": 2025,
-    "src": "/photos/003.JPG"
+    "src": "/photo/003.JPG"
   },
   {
     "index": 4,
     "title": "Untitled (BLACK BLUE BLACK BOY)",
     "year": 2025,
-    "src": "/photos/004.JPG"
+    "src": "/photo/004.JPG"
   },
   {
     "index": 5,
     "title": "ADS FOR SALE!",
     "year": 2024,
-    "src": "/photos/005.JPG"
+    "src": "/photo/005.JPG"
   },
   {
     "index": 6,
-    "title": "ADS FOR SALE!",
+    "title": "Emirates (Arsenal)",
     "year": 2024,
-    "src": "/photos/006.jpg"
+    "src": "/photo/006.jpeg"
   },
   {
     "index": 7,
-    "title": "ADS FOR SALE!",
-    "year": 2024,
-    "src": "/photos/007.JPG"
+    "title": "panopticon",
+    "year": 2022,
+    "src": "/photo/007.JPG"
   },
   {
     "index": 8,
-    "title": "ADS FOR SALE!",
-    "year": 2024,
-    "src": "/photos/008.jpg"
+    "title": "panopticon",
+    "year": 2022,
+    "src": "/photo/008.JPG"
   },
   {
     "index": 9,
-    "title": "Emirates (Arsenal)",
-    "year": 2024,
-    "src": "/photos/009.jpeg"
+    "title": "Self portrait, Olde Common Drive",
+    "year": 2019,
+    "src": "/photo/009.jpg"
   },
   {
     "index": 10,
-    "title": "panopticon",
-    "year": 2022,
-    "src": "/photos/010.JPG"
-  },
-  {
-    "index": 11,
-    "title": "panopticon",
-    "year": 2022,
-    "src": "/photos/011.JPG"
-  },
-  {
-    "index": 12,
-    "title": "Self portait, Olde Common",
+    "title": "Self portrait, Olde Common Drive",
     "year": 2019,
-    "src": "/photos/012.jpg"
-  },
-  {
-    "index": 13,
-    "title": "Self portait, Olde Common",
-    "year": 2019,
-    "src": "/photos/013.jpg"
+    "src": "/photo/010.jpg"
   }
 ]
