@@ -1,41 +1,34 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import NavigationCard from '@/components/navigation/NavigationCard';
+import { caseStudies as contentCaseStudies } from '@/content/case-studies';
 
-const caseStudies = [
-  {
-    title: 'Kensho',
-    videoSrc: '/academy/Chesnutt.mp4',
-    videoAlt: 'Kensho teaser video placeholder',
-    caption: 'Teaser video placeholder for Kensho.',
-  },
-  {
-    title: 'Sea12',
+const teaserPlaceholders: Record<string, { videoSrc: string; videoAlt: string; caption: string }> = {
+  sea12: {
     videoSrc: '/academy/ColorPractice.mp4',
     videoAlt: 'Sea12 teaser video placeholder',
     caption: 'Teaser video placeholder for Sea12.',
   },
-  {
-    title: 'Constellating',
-    videoSrc: '/academy/Hillhouse.mp4',
-    videoAlt: 'Constellating teaser video placeholder',
-    caption: 'Teaser video placeholder for Constellating.',
-  },
-  {
-    title: 'Linkus',
-    videoSrc: '/academy/JasmineRoss.mp4',
-    videoAlt: 'Linkus teaser video placeholder',
-    caption: 'Teaser video placeholder for Linkus.',
-  },
-  {
-    title: 'Fidelity',
+  fidelity: {
     videoSrc: '/academy/Neojazz.mp4',
     videoAlt: 'Fidelity teaser video placeholder',
     caption: 'Teaser video placeholder for Fidelity.',
   },
-];
+  kensho: {
+    videoSrc: '/academy/Chesnutt.mp4',
+    videoAlt: 'Kensho teaser video placeholder',
+    caption: 'Teaser video placeholder for Kensho.',
+  },
+};
+
+const caseStudies = contentCaseStudies.map((cs) => ({
+  slug: cs.slug,
+  title: cs.title,
+  ...teaserPlaceholders[cs.slug],
+}));
 
 export default function Home() {
   const [isNavExpanded, setIsNavExpanded] = useState(false);
@@ -82,19 +75,18 @@ export default function Home() {
                   const isActive = index === activeIndex;
 
                   return (
-                    <button
-                      key={study.title}
-                      type="button"
+                    <Link
+                      key={study.slug}
+                      href={`/work/${study.slug}`}
                       className="flex items-center gap-2 text-left transition-opacity duration-300 hover:opacity-80"
                       style={{ color: isActive ? '#000000' : 'rgba(0, 0, 0, 0.5)' }}
                       aria-current={isActive}
                       onMouseEnter={() => setActiveIndex(index)}
                       onFocus={() => setActiveIndex(index)}
-                      onClick={() => setActiveIndex(index)}
                     >
                       <span style={{ color: isActive ? '#946851' : 'transparent' }}>→</span>
                       <span>{study.title}</span>
-                    </button>
+                    </Link>
                   );
                 })}
               </div>
@@ -121,7 +113,7 @@ export default function Home() {
                     }}
                   >
                     <video
-                      key={activeStudy.title}
+                      key={activeStudy.slug}
                       src={activeStudy.videoSrc}
                       aria-label={activeStudy.videoAlt}
                       muted
