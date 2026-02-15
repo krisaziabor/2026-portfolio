@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Diptych as DiptychType } from '@/types/case-study';
 import { Diptych } from './Diptych';
@@ -9,11 +9,17 @@ import { EndTeaser } from './EndTeaser';
 interface DiptychSequenceProps {
   diptychs: DiptychType[];
   nextCaseStudy?: { slug: string; title: string; vimeoId: string } | null;
+  /** Controlled: current diptych index */
+  currentIndex: number;
+  /** Controlled: called when index changes (scroll, keyboard, or programmatic) */
+  onIndexChange: (index: number) => void;
   onCurrentDiptychChange?: (info: {
     index: number;
     section: string;
     total: number;
   }) => void;
+  /** Called when user scrolls up on the first diptych (e.g. to return to title view) */
+  onScrollUpFromFirst?: () => void;
 }
 
 const SCROLL_DEBOUNCE_MS = 400;
@@ -27,9 +33,11 @@ function isFirstInSection(diptychs: DiptychType[], index: number): boolean {
 export function DiptychSequence({
   diptychs,
   nextCaseStudy,
+  currentIndex,
+  onIndexChange,
   onCurrentDiptychChange,
+  onScrollUpFromFirst,
 }: DiptychSequenceProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const touchStartYRef = useRef<number | null>(null);
   const lastScrollTimeRef = useRef(0);
 
@@ -45,15 +53,16 @@ export function DiptychSequence({
   }, [currentIndex, currentDiptych?.section, totalDiptychs, onCurrentDiptychChange]);
 
   const goNext = useCallback(() => {
-    setCurrentIndex((prev) => {
-      if (prev >= totalDiptychs - 1) return prev;
-      return prev + 1;
-    });
-  }, [totalDiptychs]);
+    onIndexChange(Math.min(currentIndex + 1, totalDiptychs - 1));
+  }, [currentIndex, totalDiptychs, onIndexChange]);
 
   const goPrev = useCallback(() => {
-    setCurrentIndex((prev) => Math.max(0, prev - 1));
-  }, []);
+    if (currentIndex === 0) {
+      onScrollUpFromFirst?.();
+    } else {
+      onIndexChange(Math.max(0, currentIndex - 1));
+    }
+  }, [currentIndex, onIndexChange, onScrollUpFromFirst]);
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
