@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { CaseStudy } from '@/types/case-study';
 import { DiptychSequence } from '@/components/diptych/DiptychSequence';
 
@@ -13,6 +13,8 @@ export function CaseStudyPageClient({
   caseStudy,
   nextCaseStudy,
 }: CaseStudyPageClientProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
+
   useEffect(() => {
     document.body.style.overflow = 'hidden';
     return () => {
@@ -21,7 +23,7 @@ export function CaseStudyPageClient({
   }, []);
 
   const onCurrentDiptychChange = useCallback(
-    (info: { index: number; section: string; total: number }) => {
+    (_info: { index: number; section: string; total: number }) => {
       // Could be used to update info card or breadcrumb
     },
     []
@@ -31,6 +33,8 @@ export function CaseStudyPageClient({
     <DiptychSequence
       diptychs={caseStudy.diptychs}
       nextCaseStudy={nextCaseStudy}
+      currentIndex={currentIndex}
+      onIndexChange={setCurrentIndex}
       onCurrentDiptychChange={onCurrentDiptychChange}
     />
   );

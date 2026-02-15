@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from 'react';
 import type { CaseStudy, Diptych, DiptychMedia } from '@/types/case-study';
-import { Diptych as DiptychPreview } from '@/components/diptych/Diptych';
 
 const RATIOS = ['30-70', '40-60', '50-50', '60-40', '70-30'] as const;
 const ALIGNMENTS = ['top', 'center', 'bottom'] as const;
@@ -191,16 +190,11 @@ export default function CaseStudyBuilderPage() {
   const [diptychForms, setDiptychForms] = useState<DiptychForm[]>(() => [
     emptyDiptychForm(defaultMeta.sections[0] ?? 'Overview'),
   ]);
-  const [previewIndex, setPreviewIndex] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const [exportOpen, setExportOpen] = useState(false);
   const [exportText, setExportText] = useState('');
 
   const slug = meta.slug || 'case-study';
-  const previewDiptychs: Diptych[] = diptychForms.map((f, i) => formToDiptych(f, slug, i));
-  const previewDiptych = previewDiptychs[previewIndex];
-  const isFirstInSection =
-    previewIndex === 0 ||
-    previewDiptychs[previewIndex].section !== previewDiptychs[previewIndex - 1].section;
 
   const updateMeta = useCallback((updates: Partial<CaseStudyMeta>) => {
     setMeta((m) => ({ ...m, ...updates }));
@@ -217,7 +211,7 @@ export default function CaseStudyBuilderPage() {
   const addDiptych = useCallback(() => {
     const firstSection = meta.sections[0] ?? 'Overview';
     setDiptychForms((prev) => [...prev, emptyDiptychForm(firstSection)]);
-    setPreviewIndex((i) => i + 1);
+    setSelectedIndex((i) => i + 1);
   }, [meta.sections]);
 
   const addSection = useCallback((name: string) => {
@@ -256,7 +250,7 @@ export default function CaseStudyBuilderPage() {
 
   const removeDiptych = useCallback((index: number) => {
     setDiptychForms((prev) => prev.filter((_, i) => i !== index));
-    setPreviewIndex((i) =>
+    setSelectedIndex((i) =>
       i === index ? Math.max(0, index - 1) : i > index ? i - 1 : i
     );
   }, []);
@@ -271,7 +265,7 @@ export default function CaseStudyBuilderPage() {
     navigator.clipboard.writeText(exportText);
   }, [exportText]);
 
-  const currentForm = diptychForms[previewIndex];
+  const currentForm = diptychForms[selectedIndex];
   if (!currentForm) return null;
 
   return (
@@ -279,9 +273,7 @@ export default function CaseStudyBuilderPage() {
       <div className="mx-auto max-w-[1600px]">
         <h1 className="text-content text-2xl mb-6 font-normal">Case Study Builder</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left: Forms */}
-          <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-6 max-w-2xl">
             {/* Meta */}
             <section className="rounded border border-[#dbd8d8] bg-[#FCFCFC] p-4">
               <h2 className="text-content text-lg mb-3">Case study</h2>
@@ -525,9 +517,9 @@ export default function CaseStudyBuilderPage() {
                   <button
                     key={i}
                     type="button"
-                    onClick={() => setPreviewIndex(i)}
+                    onClick={() => setSelectedIndex(i)}
                     className={`px-2 py-1 rounded text-sm border ${
-                      previewIndex === i
+                      selectedIndex === i
                         ? 'border-[#8B6B5A] bg-[#8B6B5A] text-white'
                         : 'border-[#dbd8d8] bg-white hover:bg-[#f0f0f0] text-content'
                     }`}
@@ -541,9 +533,9 @@ export default function CaseStudyBuilderPage() {
                 <input
                   type="text"
                   value={currentForm.idOverride}
-                  onChange={(e) => updateDiptychForm(previewIndex, { idOverride: e.target.value })}
+                  onChange={(e) => updateDiptychForm(selectedIndex, { idOverride: e.target.value })}
                   className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white font-mono"
-                  placeholder={`${slug}-${String(previewIndex + 1).padStart(2, '0')}`}
+                  placeholder={`${slug}-${String(selectedIndex + 1).padStart(2, '0')}`}
                 />
               </label>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm mb-3">
@@ -552,7 +544,7 @@ export default function CaseStudyBuilderPage() {
                   <select
                     value={currentForm.section}
                     onChange={(e) =>
-                      updateDiptychForm(previewIndex, { section: e.target.value })
+                      updateDiptychForm(selectedIndex, { section: e.target.value })
                     }
                     className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white"
                   >
@@ -572,7 +564,7 @@ export default function CaseStudyBuilderPage() {
                   <select
                     value={currentForm.ratio}
                     onChange={(e) =>
-                      updateDiptychForm(previewIndex, {
+                      updateDiptychForm(selectedIndex, {
                         ratio: e.target.value as (typeof RATIOS)[number],
                       })
                     }
@@ -590,7 +582,7 @@ export default function CaseStudyBuilderPage() {
                   <select
                     value={currentForm.alignment}
                     onChange={(e) =>
-                      updateDiptychForm(previewIndex, {
+                      updateDiptychForm(selectedIndex, {
                         alignment: e.target.value as (typeof ALIGNMENTS)[number],
                       })
                     }
@@ -608,7 +600,7 @@ export default function CaseStudyBuilderPage() {
                 Text (Markdown)
                 <textarea
                   value={currentForm.textContent}
-                  onChange={(e) => updateDiptychForm(previewIndex, { textContent: e.target.value })}
+                  onChange={(e) => updateDiptychForm(selectedIndex, { textContent: e.target.value })}
                   className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white min-h-[120px] font-mono text-sm"
                   placeholder="## Heading&#10;&#10;Paragraph with **bold**."
                 />
@@ -618,18 +610,18 @@ export default function CaseStudyBuilderPage() {
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
-                    name={`media-${previewIndex}`}
+                    name={`media-${selectedIndex}`}
                     checked={currentForm.mediaType === 'image'}
-                    onChange={() => updateDiptychForm(previewIndex, { mediaType: 'image' })}
+                    onChange={() => updateDiptychForm(selectedIndex, { mediaType: 'image' })}
                   />
                   Image
                 </label>
                 <label className="flex items-center gap-2">
                   <input
                     type="radio"
-                    name={`media-${previewIndex}`}
+                    name={`media-${selectedIndex}`}
                     checked={currentForm.mediaType === 'video'}
-                    onChange={() => updateDiptychForm(previewIndex, { mediaType: 'video' })}
+                    onChange={() => updateDiptychForm(selectedIndex, { mediaType: 'video' })}
                   />
                   Video
                 </label>
@@ -642,7 +634,7 @@ export default function CaseStudyBuilderPage() {
                       <input
                         type="text"
                         value={currentForm.imageSrc}
-                        onChange={(e) => updateDiptychForm(previewIndex, { imageSrc: e.target.value })}
+                        onChange={(e) => updateDiptychForm(selectedIndex, { imageSrc: e.target.value })}
                         className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white"
                         placeholder="/academy/image.png"
                       />
@@ -652,7 +644,7 @@ export default function CaseStudyBuilderPage() {
                       <input
                         type="text"
                         value={currentForm.imageAlt}
-                        onChange={(e) => updateDiptychForm(previewIndex, { imageAlt: e.target.value })}
+                        onChange={(e) => updateDiptychForm(selectedIndex, { imageAlt: e.target.value })}
                         className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white"
                         placeholder="Description"
                       />
@@ -663,7 +655,7 @@ export default function CaseStudyBuilderPage() {
                     <input
                       type="text"
                       value={currentForm.aspectRatio}
-                      onChange={(e) => updateDiptychForm(previewIndex, { aspectRatio: e.target.value })}
+                      onChange={(e) => updateDiptychForm(selectedIndex, { aspectRatio: e.target.value })}
                       className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white w-24"
                       placeholder="16/9"
                     />
@@ -678,7 +670,7 @@ export default function CaseStudyBuilderPage() {
                         type="text"
                         value={currentForm.vimeoId}
                         onChange={(e) =>
-                          updateDiptychForm(previewIndex, { vimeoId: e.target.value })
+                          updateDiptychForm(selectedIndex, { vimeoId: e.target.value })
                         }
                         className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white w-32"
                         placeholder="1160310741"
@@ -689,7 +681,7 @@ export default function CaseStudyBuilderPage() {
                         type="checkbox"
                         checked={currentForm.hasAudio}
                         onChange={(e) =>
-                          updateDiptychForm(previewIndex, { hasAudio: e.target.checked })
+                          updateDiptychForm(selectedIndex, { hasAudio: e.target.checked })
                         }
                       />
                       Has audio
@@ -700,7 +692,7 @@ export default function CaseStudyBuilderPage() {
                     <input
                       type="text"
                       value={currentForm.aspectRatio}
-                      onChange={(e) => updateDiptychForm(previewIndex, { aspectRatio: e.target.value })}
+                      onChange={(e) => updateDiptychForm(selectedIndex, { aspectRatio: e.target.value })}
                       className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white w-24"
                       placeholder="16/9"
                     />
@@ -712,7 +704,7 @@ export default function CaseStudyBuilderPage() {
                       min={0}
                       step={1}
                       value={currentForm.posterTime}
-                      onChange={(e) => updateDiptychForm(previewIndex, { posterTime: e.target.value })}
+                      onChange={(e) => updateDiptychForm(selectedIndex, { posterTime: e.target.value })}
                       className="border border-[#dbd8d8] rounded px-2 py-1.5 bg-white w-24"
                       placeholder="0"
                     />
@@ -722,7 +714,7 @@ export default function CaseStudyBuilderPage() {
               {diptychForms.length > 1 && (
                 <button
                   type="button"
-                  onClick={() => removeDiptych(previewIndex)}
+                  onClick={() => removeDiptych(selectedIndex)}
                   className="text-sm text-red-600 hover:underline"
                 >
                   Remove this diptych
@@ -737,22 +729,6 @@ export default function CaseStudyBuilderPage() {
             >
               Finish & get TS file
             </button>
-          </div>
-
-          {/* Right: Preview */}
-          <div className="rounded border border-[#dbd8d8] bg-[#FCFCFC] overflow-hidden min-h-[400px] flex flex-col">
-            <div className="px-4 py-2 border-b border-[#EBEBEB] text-metadata text-sm">
-              Preview — diptych {previewIndex + 1} of {diptychForms.length}
-            </div>
-            <div className="flex-1 min-h-0 p-6 flex flex-col">
-              {previewDiptych && (
-                <DiptychPreview
-                  diptych={previewDiptych}
-                  isFirstInSection={isFirstInSection}
-                />
-              )}
-            </div>
-          </div>
         </div>
       </div>
 
