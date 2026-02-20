@@ -7,11 +7,11 @@ interface DiptychTextProps {
 
 export function DiptychText({ content, sectionLabel }: DiptychTextProps) {
   return (
-    <div className="flex flex-col h-full">
-      {sectionLabel && (
+    <div className="flex flex-col">
+      {sectionLabel && sectionLabel !== 'Overview' && (
         <p className="text-metadata text-sm mb-[var(--space-2)]">{sectionLabel}</p>
       )}
-      <div className="prose prose-sm max-w-none flex-1 [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)]">
+      <div className="prose prose-sm max-w-none [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)]">
         <ReactMarkdown
           components={{
             a: ({ href, children }) => (
