@@ -20,9 +20,14 @@ interface DiptychSequenceProps {
   }) => void;
   /** Called when user scrolls up on the first diptych (e.g. to return to title view) */
   onScrollUpFromFirst?: () => void;
+  /** Background color for media panel (matches intro card). */
+  titleCardBackgroundColor?: string;
+  /** When set, diptych image src is resolved to /work/{caseStudySlug}/{src}. */
+  caseStudySlug?: string;
 }
 
-const SCROLL_DEBOUNCE_MS = 400;
+const SCROLL_DEBOUNCE_MS = 700;
+const SCROLL_DELTA_THRESHOLD = 90;
 const TRANSITION_DURATION = 0.4;
 
 function isFirstInSection(diptychs: DiptychType[], index: number): boolean {
@@ -37,12 +42,31 @@ export function DiptychSequence({
   onIndexChange,
   onCurrentDiptychChange,
   onScrollUpFromFirst,
+  titleCardBackgroundColor,
+  caseStudySlug,
 }: DiptychSequenceProps) {
   const touchStartYRef = useRef<number | null>(null);
   const lastScrollTimeRef = useRef(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const wheelAccumRef = useRef(0);
 
   const totalDiptychs = diptychs.length;
   const currentDiptych = diptychs[currentIndex];
+
+  // Keep card position static: when index changes, reset scroll so the card stays in the same place as the first diptych.
+  // Otherwise focus or layout in the new content can cause the scroll container to scroll, making the card appear lower.
+  useEffect(() => {
+    const el = scrollContainerRef.current;
+    if (!el) return;
+    el.scrollTop = 0;
+    // Run again after paint so we override any scroll-into-view from focus in the new content.
+    const raf = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.scrollTop = 0;
+      });
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [currentIndex]);
 
   useEffect(() => {
     onCurrentDiptychChange?.({
@@ -67,22 +91,26 @@ export function DiptychSequence({
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       if (totalDiptychs === 0) return;
+      e.preventDefault();
 
       const now = Date.now();
       if (now - lastScrollTimeRef.current < SCROLL_DEBOUNCE_MS) {
-        e.preventDefault();
         return;
       }
 
-      if (e.deltaY > 0) {
+      wheelAccumRef.current += e.deltaY;
+
+      if (wheelAccumRef.current >= SCROLL_DELTA_THRESHOLD) {
         if (currentIndex < totalDiptychs - 1) {
-          e.preventDefault();
           lastScrollTimeRef.current = now;
+          wheelAccumRef.current = 0;
           goNext();
+        } else {
+          wheelAccumRef.current = SCROLL_DELTA_THRESHOLD;
         }
-      } else if (e.deltaY < 0) {
-        e.preventDefault();
+      } else if (wheelAccumRef.current <= -SCROLL_DELTA_THRESHOLD) {
         lastScrollTimeRef.current = now;
+        wheelAccumRef.current = 0;
         goPrev();
       }
     };
@@ -108,7 +136,7 @@ export function DiptychSequence({
       const currentY = e.touches[0]?.clientY ?? startY;
       const deltaY = startY - currentY;
 
-      if (Math.abs(deltaY) < 50) return;
+      if (Math.abs(deltaY) < SCROLL_DELTA_THRESHOLD) return;
 
       const now = Date.now();
       if (now - lastScrollTimeRef.current < SCROLL_DEBOUNCE_MS) {
@@ -145,29 +173,55 @@ export function DiptychSequence({
 
   const showTeaser = currentIndex === totalDiptychs - 1 && nextCaseStudy;
 
+  const CARD_BOTTOM_PADDING = 182 + 32;
+
   return (
     <div className="flex flex-col h-full min-h-0 overflow-hidden">
       <div className="flex-1 min-h-0 overflow-hidden relative">
-        <AnimatePresence mode="wait">
-          {currentIndex < totalDiptychs && currentDiptych ? (
-            <motion.div
-              key={currentDiptych.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{
-                duration: TRANSITION_DURATION,
-                ease: 'easeOut',
-              }}
-              className="absolute inset-0 flex flex-col"
-            >
-              <Diptych
-                diptych={currentDiptych}
-                isFirstInSection={isFirstInSection(diptychs, currentIndex)}
-              />
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
+        <div
+          ref={scrollContainerRef}
+          className="absolute inset-0 flex flex-col items-center justify-end overflow-auto pt-12 px-8"
+          style={{ paddingBottom: CARD_BOTTOM_PADDING }}
+        >
+          {/* Static frame: border and background never change position or animate */}
+          <div
+            className="bg-white w-full overflow-hidden flex flex-col shrink-0"
+            style={{
+              maxWidth: 'clamp(600px, 62.5%, 1200px)',
+              height: 728,
+              minHeight: 728,
+              borderRadius: '4px',
+              border: '1px solid #dbd8d8',
+              backgroundColor: '#FCFCFC',
+            }}
+          >
+            {/* Only the content inside transitions */}
+            <div className="relative flex-1 min-h-0">
+            <AnimatePresence mode="wait">
+              {currentIndex < totalDiptychs && currentDiptych ? (
+                <motion.div
+                  key={currentDiptych.id}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{
+                    duration: TRANSITION_DURATION,
+                    ease: 'easeOut',
+                  }}
+                  className="absolute inset-0 flex flex-col min-h-0"
+                >
+                <Diptych
+                  diptych={currentDiptych}
+                  isFirstInSection={isFirstInSection(diptychs, currentIndex)}
+                  titleCardBackgroundColor={titleCardBackgroundColor}
+                  caseStudySlug={caseStudySlug}
+                />
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
+            </div>
+          </div>
+        </div>
       </div>
       {showTeaser && nextCaseStudy && (
         <div className="shrink-0 border-t border-[#F0F0F0]">

@@ -24,6 +24,10 @@
   --color-background: #FFFFFF;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   /* Colors */
   --color-content: #000000;

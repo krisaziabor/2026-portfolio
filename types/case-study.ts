@@ -1,49 +1,39 @@
-// Media can be an image, a silent video (autoplay loop), or a video with meaningful audio (user-controlled)
+// Legacy types kept for case-study-builder tool and any remaining diptych UI.
 export type DiptychMedia =
   | {
       type: 'image';
       src: string;
       alt: string;
-      aspectRatio?: string; // e.g. "16/9", "1/1"
+      aspectRatio?: string;
     }
   | {
       type: 'video';
       vimeoId: string;
       hasAudio: false;
+      alt?: string;
       aspectRatio?: string;
-      posterTime?: number; // Seconds for poster/thumbnail frame
+      posterTime?: number;
     }
   | {
       type: 'video';
       vimeoId: string;
       hasAudio: true;
+      alt?: string;
       aspectRatio?: string;
       posterTime?: number;
     };
 
-export type DiptychRatio = '30-70' | '40-60' | '50-50' | '60-40' | '70-30';
-// First number = left panel (text) width, second = right panel (media) width
-// Use '30-70' for final designs that need space
-// Use '70-30' for text-heavy explanations
-// Use '50-50' as default balanced split
-
+export type DiptychRatio = '30-70' | '40-60' | '50-50' | '60-40' | '70-30' | '100-0' | '0-100';
 export type DiptychAlignment = 'top' | 'center' | 'bottom';
-// Vertical alignment of content within each panel
-
-// Sections organize diptychs into navigable chapters. Each case study defines its own section names.
-export type CaseStudySection = string;
 
 export interface Diptych {
-  id: string; // Unique identifier, e.g. "sea12-01"
-  section: CaseStudySection; // Which section this belongs to
-  ratio: DiptychRatio; // Left/right width split
-  alignment: DiptychAlignment; // Vertical alignment
-  text: {
-    content: string; // Markdown string for the left panel
-    // First diptych of each section shows section name at top of left panel
-    // in faded gray. This is derived from the `section` field — don't add
-    // a separate flag. Just check if this is the first diptych in its section.
-  };
+  id: string;
+  section: string;
+  ratio: DiptychRatio;
+  alignment: DiptychAlignment;
+  textMaxWidthPercent?: number;
+  mediaBackgroundColor?: string;
+  text: { content: string };
   media: DiptychMedia;
 }
 
@@ -52,10 +42,60 @@ export interface CaseStudyMetadataItem {
   value: string;
 }
 
-export interface CaseStudySkipLink {
-  label: string;
-  targetSection: string;
+/** Optional hero media (image or video) shown at top of case study. */
+export type CaseStudyHeroMedia =
+  | {
+      type: 'image';
+      src: string;
+      alt: string;
+    }
+  | {
+      type: 'video';
+      alt: string;
+      /** Vimeo ID. If hasAudio is false, autoplay/muted/loop. */
+      vimeoId: string;
+      hasAudio?: boolean;
+      posterTime?: number;
+    };
+
+/** Optional browser-window chrome shown above hero media (e.g. site name + nav). */
+export interface CaseStudyHeroChrome {
+  siteName: string;
+  navItems: string[];
 }
+
+/** Media for split block: image or Vimeo video. */
+export type CaseStudySplitMedia =
+  | {
+      type: 'image';
+      src: string;
+      alt?: string;
+    }
+  | {
+      type: 'video';
+      vimeoId: string;
+      alt?: string;
+      /** If false, autoplay/muted/loop. If true, shows controls. */
+      hasAudio?: boolean;
+      /** Poster time in seconds for videos with audio. */
+      posterTime?: number;
+    };
+
+/** Block with media on one side (50%) and markdown text on the other (50%), vertically centered. */
+export interface CaseStudySplitBlock {
+  type: 'split';
+  /** Which side the media is on. */
+  side: 'left' | 'right';
+  /** Image or video media. */
+  media: CaseStudySplitMedia;
+  /** Markdown content for the text side. */
+  content: string;
+}
+
+/** Body block: either a markdown segment or a split (image + text) block. */
+export type CaseStudyBodyBlock =
+  | { type: 'markdown'; content: string }
+  | CaseStudySplitBlock;
 
 export interface CaseStudy {
   slug: string;
@@ -63,20 +103,22 @@ export interface CaseStudy {
   client: string;
   isProtected: boolean;
   sequence: number;
-  summary: string; // One-line description for navigation cards
+  summary: string;
   tags: string[];
-  sections: CaseStudySection[];
-  diptychs: Diptych[];
-  nextCaseStudySlug?: string;
-  teaserVimeoId?: string;
   /** Custom key-value pairs (e.g. role, timeline, team) */
   metadata?: CaseStudyMetadataItem[];
-  /** Introductory body text on the title card, markdown */
-  lede?: string;
-  /** Short subtitle with light markdown support */
-  tagline?: string;
-  /** Optional skip link: label + target section name */
-  skipLink?: CaseStudySkipLink;
-  /** Optional background color for the right side of the title card (e.g., "#000000", "rgba(0,0,0,0.1)") */
-  titleCardBackgroundColor?: string;
+  /** Short intro for two-column hero (left column). If omitted, summary/body can be used. */
+  intro?: string;
+  /** Hero media block at top (image or video in dark container). */
+  heroMedia?: CaseStudyHeroMedia;
+  /** Background color for hero/cover area (e.g. #1a1a1a). Defaults to dark gray if omitted. */
+  heroBackgroundColor?: string;
+  /** Optional browser-style bar above hero media. */
+  heroChrome?: CaseStudyHeroChrome;
+  /** Full case study content as markdown (legacy) or array of blocks (markdown + split). */
+  body: string | CaseStudyBodyBlock[];
+  /** Anchor label for skip link (e.g. "designs"). Links to first H2 matching this. */
+  skipToSection?: string;
+  nextCaseStudySlug?: string;
+  teaserVimeoId?: string;
 }
