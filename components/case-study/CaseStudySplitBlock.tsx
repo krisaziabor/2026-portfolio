@@ -1,8 +1,10 @@
 'use client';
 
 import ReactMarkdown from 'react-markdown';
-import type { ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { CaseStudySplitBlock as SplitBlockProps } from '@/types/case-study';
+import { VideoSettingsControls, type VideoSettingsControlsHandle } from './VideoSettingsControls';
+import { VideoOverlay } from './VideoOverlay';
 
 function getHeadingText(children: ReactNode): string {
   if (typeof children === 'string') return children;
@@ -23,6 +25,10 @@ const proseClasses =
 export function CaseStudySplitBlock({ block }: { block: SplitBlockProps }) {
   const { side, media, content } = block;
   const isMediaLeft = side === 'left';
+  const videoIframeRef = useRef<HTMLIFrameElement | null>(null);
+  const videoControlsRef = useRef<VideoSettingsControlsHandle | null>(null);
+  const [videoIframeReady, setVideoIframeReady] = useState(false);
+  const [videoPaused, setVideoPaused] = useState(true);
 
   const captionStyle = {
     fontFamily: 'var(--font-lector)',
@@ -51,27 +57,65 @@ export function CaseStudySplitBlock({ block }: { block: SplitBlockProps }) {
         </>
       ) : (
         <>
-          <div className="relative w-full" style={{ aspectRatio: '16 / 9' }}>
+          <div
+            className="relative w-full"
+            style={{
+              aspectRatio: '16 / 9',
+              ...(media.backgroundColor != null ? { backgroundColor: media.backgroundColor } : {}),
+            }}
+          >
             {(() => {
               const hasAudio = media.hasAudio ?? false;
               const embedParams = new URLSearchParams({
-                ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1' }),
+                ...(hasAudio ? { muted: '0' } : { background: '1', autoplay: '1', loop: '1', muted: '1' }),
                 ...(media.posterTime != null && hasAudio ? { t: String(media.posterTime) } : {}),
+                ...(media.showVideoSettings ? { controls: '0' } : {}),
               });
               const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
+              const videoInnerStyle =
+                media.backgroundColor != null
+                  ? {
+                      position: 'absolute' as const,
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      width: '75%',
+                      height: '75%',
+                    }
+                  : { position: 'absolute' as const, inset: 0 };
               return (
-                <iframe
-                  src={embedUrl}
-                  title={media.alt ?? ''}
-                  className="absolute inset-0 w-full h-full"
-                  allow={hasAudio ? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope' : 'autoplay; fullscreen; picture-in-picture'}
-                  allowFullScreen
-                />
+                <>
+                  <div style={videoInnerStyle}>
+                    <iframe
+                      ref={videoIframeRef}
+                      src={embedUrl}
+                      title={media.alt ?? ''}
+                      className="absolute inset-0 w-full h-full"
+                      allow={hasAudio ? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope' : 'autoplay; fullscreen; picture-in-picture'}
+                      allowFullScreen
+                      onLoad={() => setVideoIframeReady(true)}
+                    />
+                  </div>
+                  {media.showVideoSettings ? (
+                    <VideoOverlay paused={videoPaused} onToggle={() => videoControlsRef.current?.togglePlayPause()} />
+                  ) : null}
+                </>
               );
             })()}
           </div>
-          {media.alt ? (
-            <figcaption style={captionStyle}>{media.alt}</figcaption>
+          {(media.alt || media.showVideoSettings) ? (
+            <figcaption style={captionStyle}>
+              {media.alt}
+              {media.showVideoSettings ? (
+                <VideoSettingsControls
+                  ref={videoControlsRef}
+                  iframeRef={videoIframeRef}
+                  hasAudio={media.hasAudio ?? false}
+                  iframeReady={videoIframeReady}
+                  onPausedChange={setVideoPaused}
+                />
+              ) : null}
+            </figcaption>
           ) : null}
         </>
       )}

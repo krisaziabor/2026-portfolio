@@ -16,7 +16,7 @@ const bio = [
 
   'I study Computer Science and Fine Arts at Yale and lead the university\'s design community & studio, forming & overseeing the largest ever designer cohort in Design at Yale\'s history. I\'ve previously worked at Kensho, S&P Global, Fidelity Investments, and cyclio.',
 
-  'If I\'m not designing, you\'ll probably find me supporting Arsenal (this year is our year), playing pickleball and tennis, taking photos, writing, and listening to R&B.',
+  'If I\'m not designing, you\'ll probably find me supporting Arsenal, playing pickleball and tennis, taking photos, writing, and listening to R&B.',
 
   'Welcome to my home!'
 ];

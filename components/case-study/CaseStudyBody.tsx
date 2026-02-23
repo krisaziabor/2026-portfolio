@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import type { ReactNode, ComponentPropsWithoutRef } from 'react';
 import type { CaseStudy, CaseStudyBodyBlock } from '@/types/case-study';
 import { CaseStudySplitBlock } from './CaseStudySplitBlock';
+import { VimeoEmbedFigure } from './VimeoEmbedFigure';
 
 interface CaseStudyBodyProps {
   caseStudy: CaseStudy;
@@ -41,6 +42,15 @@ const markdownComponents = {
       <h2 id={id} className="scroll-mt-6" style={{ color: 'var(--color-metadata)' }}>
         {children}
       </h2>
+    );
+  },
+  h3: ({ children }: { children?: ReactNode }) => {
+    const text = getHeadingText(children);
+    const id = slugifyHeading(text) || 'section';
+    return (
+      <h3 id={id} className="scroll-mt-6 italic mb-[var(--space-2)]" style={{ color: 'var(--color-metadata)' }}>
+        {children}
+      </h3>
     );
   },
   a: ({ href, children }: { href?: string; children?: ReactNode }) => (
@@ -82,28 +92,20 @@ const markdownComponents = {
       const params = vimeoMatch[2] ? new URLSearchParams(vimeoMatch[2]) : null;
       const hasAudio = params?.get('hasAudio') === 'true';
       const posterTime = params?.get('posterTime') ? Number(params.get('posterTime')) : undefined;
-      
-      const embedParams = new URLSearchParams({
-        ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1' }),
-        ...(posterTime != null && hasAudio ? { t: String(posterTime) } : {}),
-      });
-      const embedUrl = `https://player.vimeo.com/video/${vimeoId}?${embedParams}`;
-      
+      const showVideoSettings = params?.get('showVideoSettings') === 'true';
+      const backgroundColor = params?.get('backgroundColor') ?? undefined;
+
       return (
-        <figure className="block my-0" style={fullBleedStyle}>
-          <div className="relative w-full" style={{ aspectRatio: '16 / 9' }}>
-            <iframe
-              src={embedUrl}
-              title={caption}
-              className="absolute inset-0 w-full h-full"
-              allow={hasAudio ? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope' : 'autoplay; fullscreen; picture-in-picture'}
-              allowFullScreen
-            />
-          </div>
-          {caption ? (
-            <figcaption style={captionStyle}>{caption}</figcaption>
-          ) : null}
-        </figure>
+        <VimeoEmbedFigure
+          vimeoId={vimeoId}
+          hasAudio={hasAudio}
+          posterTime={posterTime}
+          caption={caption}
+          showVideoSettings={showVideoSettings}
+          backgroundColor={backgroundColor}
+          figureStyle={fullBleedStyle}
+          captionStyle={captionStyle}
+        />
       );
     }
 
@@ -119,7 +121,7 @@ const markdownComponents = {
           style={{ display: 'block', verticalAlign: 'middle' }}
         />
         {caption ? (
-          <figcaption style={captionStyle}>{caption}</figcaption>
+          <figcaption className="max-w-full md:max-w-[50%]" style={captionStyle}>{caption}</figcaption>
         ) : null}
       </figure>
     );
