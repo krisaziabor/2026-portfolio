@@ -79,6 +79,10 @@ export type CaseStudySplitMedia =
       hasAudio?: boolean;
       /** Poster time in seconds for videos with audio. */
       posterTime?: number;
+      /** If true, show minimalist timestamp and Play/Pause, Restart, Mute/Unmute below caption. */
+      showVideoSettings?: boolean;
+      /** When set, video is 75% width/height centered with this color filling the rest. */
+      backgroundColor?: string;
     };
 
 /** Block with media on one side (50%) and markdown text on the other (50%), vertically centered. */
