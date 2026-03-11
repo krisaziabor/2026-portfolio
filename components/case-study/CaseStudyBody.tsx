@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import type { ReactNode, ComponentPropsWithoutRef } from 'react';
 import type { CaseStudy, CaseStudyBodyBlock } from '@/types/case-study';
 import { CaseStudySplitBlock } from './CaseStudySplitBlock';
+import { CaseStudyTextSplitBlock } from './CaseStudyTextSplitBlock';
 import { VimeoEmbedFigure } from './VimeoEmbedFigure';
 
 interface CaseStudyBodyProps {
@@ -48,7 +49,7 @@ const markdownComponents = {
     const text = getHeadingText(children);
     const id = slugifyHeading(text) || 'section';
     return (
-      <h3 id={id} className="scroll-mt-6 italic mb-[var(--space-2)]" style={{ color: 'var(--color-metadata)' }}>
+      <h3 id={id} className="scroll-mt-6 italic mt-[var(--space-6)] mb-[var(--space-2)]" style={{ color: 'var(--color-metadata)' }}>
         {children}
       </h3>
     );
@@ -59,7 +60,7 @@ const markdownComponents = {
     </a>
   ),
   strong: ({ children }: { children?: ReactNode }) => (
-    <strong className="font-normal">{children}</strong>
+    <strong className="font-bold">{children}</strong>
   ),
   img: (props: ComponentPropsWithoutRef<'img'>) => {
     const srcStr = typeof props.src === 'string' ? props.src : null;
@@ -94,6 +95,7 @@ const markdownComponents = {
       const posterTime = params?.get('posterTime') ? Number(params.get('posterTime')) : undefined;
       const showVideoSettings = params?.get('showVideoSettings') === 'true';
       const backgroundColor = params?.get('backgroundColor') ?? undefined;
+      const maximizeVideo = params?.get('maximizeVideo') === 'true';
 
       return (
         <VimeoEmbedFigure
@@ -103,6 +105,7 @@ const markdownComponents = {
           caption={caption}
           showVideoSettings={showVideoSettings}
           backgroundColor={backgroundColor}
+          maximizeVideo={maximizeVideo}
           figureStyle={fullBleedStyle}
           captionStyle={captionStyle}
         />
@@ -141,15 +144,25 @@ export function CaseStudyBody({ caseStudy }: CaseStudyBodyProps) {
         color: 'var(--color-content)',
       }}
     >
-      {blocks.map((block, index) =>
-        block.type === 'markdown' ? (
-          <ReactMarkdown key={index} components={markdownComponents}>
-            {block.content}
-          </ReactMarkdown>
-        ) : (
-          <CaseStudySplitBlock key={index} block={block} />
-        )
-      )}
+      {blocks.map((block, index) => {
+        if (block.type === 'markdown') {
+          return (
+            <ReactMarkdown key={index} components={markdownComponents}>
+              {block.content}
+            </ReactMarkdown>
+          );
+        }
+
+        if (block.type === 'split') {
+          return <CaseStudySplitBlock key={index} block={block} />;
+        }
+
+        if (block.type === 'text-split') {
+          return <CaseStudyTextSplitBlock key={index} block={block} />;
+        }
+
+        return null;
+      })}
     </div>
   );
 }

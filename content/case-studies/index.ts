@@ -1,10 +1,9 @@
 import type { CaseStudy } from '@/types/case-study';
 import { sea12 } from './sea12';
-import { fidelity } from './fidelity';
 import { kensho } from './kensho';
 import { linkus } from './linkus';
 
-export const caseStudies: CaseStudy[] = [kensho, sea12, linkus, fidelity].sort(
+export const caseStudies: CaseStudy[] = [kensho, sea12, linkus].sort(
   (a, b) => a.sequence - b.sequence
 );
 

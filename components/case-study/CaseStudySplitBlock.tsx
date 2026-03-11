@@ -66,6 +66,7 @@ export function CaseStudySplitBlock({ block }: { block: SplitBlockProps }) {
           >
             {(() => {
               const hasAudio = media.hasAudio ?? false;
+              const maximizeVideo = media.maximizeVideo ?? false;
               const embedParams = new URLSearchParams({
                 ...(hasAudio ? { muted: '0' } : { background: '1', autoplay: '1', loop: '1', muted: '1' }),
                 ...(media.posterTime != null && hasAudio ? { t: String(media.posterTime) } : {}),
@@ -73,7 +74,7 @@ export function CaseStudySplitBlock({ block }: { block: SplitBlockProps }) {
               });
               const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
               const videoInnerStyle =
-                media.backgroundColor != null
+                media.backgroundColor != null && !maximizeVideo
                   ? {
                       position: 'absolute' as const,
                       top: '50%',
@@ -150,7 +151,7 @@ export function CaseStudySplitBlock({ block }: { block: SplitBlockProps }) {
               </a>
             ),
             strong: ({ children }) => (
-              <strong className="font-normal">{children}</strong>
+              <strong className="font-bold">{children}</strong>
             ),
           }}
         >

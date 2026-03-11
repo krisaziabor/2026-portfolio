@@ -1,16 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import ReactMarkdown from 'react-markdown';
+import type { ReactNode } from 'react';
 import NavigationCard from '@/components/navigation/NavigationCard';
 import { CaseStudyBody } from '@/components/case-study/CaseStudyBody';
 import type { CaseStudy, CaseStudyHeroMedia, CaseStudyHeroChrome } from '@/types/case-study';
+import { verifyCaseStudyPassword } from './actions';
 
 interface CaseStudyLayoutProps {
   caseStudy: CaseStudy;
-  nextCaseStudy: { slug: string; title: string; vimeoId: string } | null;
+  nextCaseStudy: CaseStudy | null;
+  isUnlocked: boolean;
 }
 
 /** Strip markdown italic/bold for plain text display. */
@@ -100,14 +105,18 @@ function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; back
   return null;
 }
 
-export function CaseStudyLayout({ caseStudy }: CaseStudyLayoutProps) {
+export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseStudyLayoutProps) {
   const [isNavExpanded, setIsNavExpanded] = useState(false);
+  const [passwordValue, setPasswordValue] = useState('');
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
   const hasHero = caseStudy.heroMedia || caseStudy.heroChrome;
   const introText = caseStudy.intro ?? '';
   const skipLabel = caseStudy.skipToSection ? `Skip to ${caseStudy.skipToSection} →` : 'Skip to content →';
   const skipTargetId = caseStudy.skipToSection
     ? caseStudy.skipToSection.toLowerCase().replace(/\s+/g, '-')
     : 'case-study-body';
+  const showBody = !caseStudy.isProtected || isUnlocked;
 
   return (
     <div className="min-h-screen relative overflow-x-hidden" style={{ backgroundColor: '#F8F8F8' }}>
@@ -178,7 +187,7 @@ export function CaseStudyLayout({ caseStudy }: CaseStudyLayoutProps) {
                 {renderSummaryWithMarkdown(caseStudy.summary)}
               </h1>
 
-              {/* Two-column intro: left = intro text, right = metadata */}
+              {/* Two-column intro (and password row when protected): same grid so left column width matches */}
               <div
                 className="grid gap-x-12 gap-y-[var(--space-2)] mb-[var(--space-6)]"
                 style={{
@@ -203,21 +212,23 @@ export function CaseStudyLayout({ caseStudy }: CaseStudyLayoutProps) {
                       ))}
                     </div>
                   ) : null}
-                  <Link
-                    href={`#${skipTargetId}`}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      const el = document.getElementById(skipTargetId);
-                      el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      window.history.pushState(null, '', `#${skipTargetId}`);
-                    }}
-                    className="inline-block mt-[var(--space-2)] text-interactive transition-opacity duration-[var(--duration-default)] hover:opacity-70"
-                    style={{ color: 'var(--color-interactive)' }}
-                  >
-                    {skipLabel}
-                  </Link>
+                  {showBody && (
+                    <Link
+                      href={`#${skipTargetId}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const el = document.getElementById(skipTargetId);
+                        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        window.history.pushState(null, '', `#${skipTargetId}`);
+                      }}
+                      className="inline-block mt-[var(--space-2)] text-interactive transition-opacity duration-[var(--duration-default)] hover:opacity-70"
+                      style={{ color: 'var(--color-interactive)' }}
+                    >
+                      {skipLabel}
+                    </Link>
+                  )}
                 </div>
-                {caseStudy.metadata && caseStudy.metadata.length > 0 && (
+                {caseStudy.metadata && caseStudy.metadata.length > 0 ? (
                   <div
                     className="flex flex-col text-left"
                     style={{ gap: '0', fontSize: '15px' }}
@@ -231,15 +242,208 @@ export function CaseStudyLayout({ caseStudy }: CaseStudyLayoutProps) {
                       </p>
                     ))}
                   </div>
+                ) : !caseStudy.isProtected || isUnlocked ? null : (
+                  <div aria-hidden style={{ width: '14rem', minWidth: '14rem' }} />
+                )}
+
+                {/* Password intro row: same grid, left column matches intro left */}
+                {caseStudy.isProtected && !isUnlocked && (
+                  <>
+                    <div className="min-w-0" style={{ maxWidth: '75%' }}>
+                      {caseStudy.passwordIntro ? (
+                        <div
+                          className="text-content [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)]"
+                          style={{
+                            fontSize: '15px',
+                            lineHeight: 'var(--leading-body)',
+                            letterSpacing: 'var(--tracking-body)',
+                          }}
+                        >
+                          <ReactMarkdown
+                            components={{
+                              p: ({ children }) => (
+                                <p className="mb-[var(--space-2)] last:mb-0">{children}</p>
+                              ),
+                              a: ({ href, children }) => (
+                                <a href={href} style={{ color: 'var(--color-interactive)' }}>
+                                  {children}
+                                </a>
+                              ),
+                            }}
+                          >
+                            {caseStudy.passwordIntro.trim()}
+                          </ReactMarkdown>
+                        </div>
+                      ) : null}
+                    </div>
+                    <div
+                      className="flex flex-col text-left"
+                      style={{ fontSize: '15px', color: 'var(--color-content)' }}
+                    >
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (!passwordValue.trim()) return;
+                          startTransition(async () => {
+                            const result = await verifyCaseStudyPassword(caseStudy.slug, passwordValue);
+                            if (result.success) router.refresh();
+                          });
+                        }}
+                        className="flex items-baseline gap-1"
+                        style={{
+                          fontFamily: 'var(--font-lector)',
+                          letterSpacing: 'var(--tracking-body)',
+                          width: '14rem',
+                        }}
+                      >
+                        <input
+                          type="password"
+                          value={passwordValue}
+                          onChange={(e) => setPasswordValue(e.target.value)}
+                          placeholder="Enter password"
+                          disabled={isPending}
+                          autoComplete="current-password"
+                          className="flex-1 min-w-0 bg-transparent border-none p-0 outline-none placeholder:text-[var(--color-metadata)]"
+                          style={{
+                            fontSize: '15px',
+                            lineHeight: 'var(--leading-body)',
+                            color: 'var(--color-content)',
+                          }}
+                          aria-label="Case study password"
+                        />
+                        <span
+                          className="transition-colors duration-[var(--duration-default)]"
+                          style={{
+                            color: passwordValue.length > 0 ? 'var(--color-interactive)' : 'var(--color-metadata)',
+                          }}
+                          aria-hidden
+                        >
+                          →
+                        </span>
+                      </form>
+                    </div>
+                  </>
                 )}
               </div>
 
-              {/* Body markdown */}
+              {/* Body markdown (gated when protected and not unlocked) */}
               <div id="case-study-body">
-                <CaseStudyBody caseStudy={caseStudy} />
+                {showBody ? <CaseStudyBody caseStudy={caseStudy} /> : null}
               </div>
             </div>
           </motion.div>
+
+          {/* Next case study preview: intro, metadata, heroMedia, "View case study →" */}
+          {nextCaseStudy && (
+            <motion.div
+              className="w-full bg-white overflow-hidden shrink-0"
+              style={{
+                marginTop: 'var(--space-8)',
+                borderRadius: '4px',
+                border: '1px solid #dbd8d8',
+                backgroundColor: '#FCFCFC',
+              }}
+            >
+              {/* Hero: optional chrome + media */}
+              {(nextCaseStudy.heroMedia || nextCaseStudy.heroChrome) && (
+                <div
+                  className="w-full overflow-hidden mb-[var(--space-4)]"
+                  style={{
+                    backgroundColor: nextCaseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG,
+                  }}
+                >
+                  {nextCaseStudy.heroChrome && (
+                    <HeroChromeBar
+                      siteName={nextCaseStudy.heroChrome.siteName}
+                      navItems={nextCaseStudy.heroChrome.navItems}
+                    />
+                  )}
+                  {nextCaseStudy.heroMedia && (
+                    <HeroMedia
+                      media={nextCaseStudy.heroMedia}
+                      backgroundColor={nextCaseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG}
+                    />
+                  )}
+                  {!nextCaseStudy.heroMedia && nextCaseStudy.heroChrome && (
+                    <div
+                      className="w-full"
+                      style={{ aspectRatio: '16 / 10', backgroundColor: nextCaseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG }}
+                      aria-hidden
+                    />
+                  )}
+                </div>
+              )}
+              <div
+                className="flex flex-col font-[family-name:var(--font-lector)] lector-font w-full"
+                style={{
+                  fontSize: '15px',
+                  padding: '16px 24px 24px 20px',
+                  minWidth: 0,
+                }}
+              >
+                {/* Headline (summary) */}
+                <h2
+                  className="text-content font-normal mb-[var(--space-4)]"
+                  style={{
+                    fontSize: '20px',
+                    letterSpacing: 'var(--tracking-body)',
+                    lineHeight: 'var(--leading-body)',
+                  }}
+                >
+                  {renderSummaryWithMarkdown(nextCaseStudy.summary)}
+                </h2>
+                {/* Two-column intro + metadata */}
+                <div
+                  className="grid gap-x-12 gap-y-[var(--space-2)] mb-[var(--space-6)]"
+                  style={{
+                    gridTemplateColumns: '1fr auto',
+                    alignItems: 'start',
+                  }}
+                >
+                  <div className="min-w-0" style={{ maxWidth: '75%' }}>
+                    {(nextCaseStudy.intro ?? '').trim() ? (
+                      <div
+                        className="text-content"
+                        style={{
+                          fontSize: '15px',
+                          lineHeight: 'var(--leading-body)',
+                          letterSpacing: 'var(--tracking-body)',
+                        }}
+                      >
+                        {(nextCaseStudy.intro ?? '').trim().split('\n\n').map((p, i) => (
+                          <p key={i} className="mb-[var(--space-2)] last:mb-0">
+                            {p}
+                          </p>
+                        ))}
+                      </div>
+                    ) : null}
+                    <Link
+                      href={`/work/${nextCaseStudy.slug}`}
+                      className="inline-block mt-[var(--space-2)] text-interactive transition-opacity duration-[var(--duration-default)] hover:opacity-70"
+                      style={{ color: 'var(--color-interactive)' }}
+                    >
+                      View case study →
+                    </Link>
+                  </div>
+                  {nextCaseStudy.metadata && nextCaseStudy.metadata.length > 0 ? (
+                    <div
+                      className="flex flex-col text-left"
+                      style={{ gap: '0', fontSize: '15px' }}
+                    >
+                      {nextCaseStudy.metadata.map((item, index) => (
+                        <p key={index} style={{ display: 'flex', gap: '0.25em' }}>
+                          <span style={{ fontWeight: 'normal', color: 'var(--color-metadata)', width: '80px', flexShrink: 0 }}>
+                            {item.key}
+                          </span>
+                          <span style={{ color: 'var(--color-content)' }}>{item.value}</span>
+                        </p>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
 

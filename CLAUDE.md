@@ -57,6 +57,11 @@ MDX content is managed through a custom loading system (`lib/content.ts`) using 
 - Diptych type: text (markdown), media (type/src/alt/hasAudio/posterTime), ratio (50-50/40-60/60-40), alignment (top/center/bottom)
 - Accessed via `getAllCaseStudies()`, `getCaseStudyBySlug()`
 
+**Password-protected case studies** (TS modules in `content/case-studies/*.ts`):
+- Case studies with `isProtected: true` show a password-intro block (two columns: `passwordIntro` copy + "Enter password" input) and hide the body until the correct password is submitted.
+- Passwords are configured via env: set `CASE_STUDY_PASSWORD_<SLUG>=password` in `.env.local` (e.g. `CASE_STUDY_PASSWORD_KENSHO=secret`). Slug is uppercased and hyphens become underscores. `.env*.local` is gitignored.
+- Unlock state is stored in an httpOnly cookie `unlocked_case_studies` (path `/work`). Auth helpers live in `lib/case-study-auth.ts`; verification is a server action in `app/work/[slug]/actions.ts`.
+
 **Academy schema** (`content/academy/*.mdx`):
 - title, type (enum: experiment/tool/exploration), sequence (number), summary, tags (string[])
 - Accessed via `getAllAcademy()`, `getAcademyBySlug()`

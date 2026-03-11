@@ -30,7 +30,7 @@ export function DiptychText({ content, sectionLabel }: DiptychTextProps) {
               </p>
             ),
             strong: ({ children }) => (
-              <strong className="font-normal text-content">{children}</strong>
+              <strong className="font-bold text-content">{children}</strong>
             ),
           }}
         >

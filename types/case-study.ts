@@ -83,6 +83,12 @@ export type CaseStudySplitMedia =
       showVideoSettings?: boolean;
       /** When set, video is 75% width/height centered with this color filling the rest. */
       backgroundColor?: string;
+      /**
+       * When true, the video uses the full 16:9 container with no 75% inset,
+       * even when backgroundColor is set. Useful for tightly cropped source
+       * videos where you want to maximize visible content.
+       */
+      maximizeVideo?: boolean;
     };
 
 /** Block with media on one side (50%) and markdown text on the other (50%), vertically centered. */
@@ -96,10 +102,20 @@ export interface CaseStudySplitBlock {
   content: string;
 }
 
-/** Body block: either a markdown segment or a split (image + text) block. */
+/** Block with markdown text on both sides (50/50 columns). */
+export interface CaseStudyTextSplitBlock {
+  type: 'text-split';
+  /** Markdown content for the left column. */
+  left: string;
+  /** Markdown content for the right column. */
+  right: string;
+}
+
+/** Body block: markdown segment, media split, or text-only split block. */
 export type CaseStudyBodyBlock =
   | { type: 'markdown'; content: string }
-  | CaseStudySplitBlock;
+  | CaseStudySplitBlock
+  | CaseStudyTextSplitBlock;
 
 export interface CaseStudy {
   slug: string;
@@ -113,6 +129,8 @@ export interface CaseStudy {
   metadata?: CaseStudyMetadataItem[];
   /** Short intro for two-column hero (left column). If omitted, summary/body can be used. */
   intro?: string;
+  /** Shown below intro when isProtected: explains why the case study is gated and how to get access. */
+  passwordIntro?: string;
   /** Hero media block at top (image or video in dark container). */
   heroMedia?: CaseStudyHeroMedia;
   /** Background color for hero/cover area (e.g. #1a1a1a). Defaults to dark gray if omitted. */

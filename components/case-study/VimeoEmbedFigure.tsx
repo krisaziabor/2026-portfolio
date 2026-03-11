@@ -12,6 +12,12 @@ interface VimeoEmbedFigureProps {
   showVideoSettings?: boolean;
   /** When set, video is 75% width/height centered with this color filling the rest. */
   backgroundColor?: string;
+   /**
+    * When true, the video uses the full 16:9 container with no 75% inset
+    * even when backgroundColor is set. Use for tightly cropped videos
+    * where you want to maximize visible content.
+    */
+   maximizeVideo?: boolean;
   figureStyle: React.CSSProperties;
   captionStyle: React.CSSProperties;
 }
@@ -23,6 +29,7 @@ export function VimeoEmbedFigure({
   caption,
   showVideoSettings = false,
   backgroundColor,
+  maximizeVideo = false,
   figureStyle,
   captionStyle,
 }: VimeoEmbedFigureProps) {
@@ -43,7 +50,7 @@ export function VimeoEmbedFigure({
     ...(backgroundColor != null ? { backgroundColor } : {}),
   };
   const videoWrapperStyle: React.CSSProperties =
-    backgroundColor != null
+    backgroundColor != null && !maximizeVideo
       ? {
           position: 'absolute',
           top: '50%',

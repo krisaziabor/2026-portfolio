@@ -17,6 +17,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Lector FSL";
+  src: url("https://framerusercontent.com/assets/KKTMS6aDxphvlz9vQ9HtZgLlMrk.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
   --color-content: #000000;
   --color-metadata: #6B6B6B;

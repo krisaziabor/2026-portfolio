@@ -1,5 +1,7 @@
 import { notFound } from 'next/navigation';
+import { cookies } from 'next/headers';
 import { getCaseStudy, getNextCaseStudy } from '@/content/case-studies';
+import { isUnlocked } from '@/lib/case-study-auth';
 import { CaseStudyLayout } from './CaseStudyLayout';
 
 interface PageProps {
@@ -22,18 +24,16 @@ export default async function CaseStudyPage({ params }: PageProps) {
   if (!caseStudy) notFound();
 
   const nextCaseStudy = getNextCaseStudy(slug);
-  const nextCaseStudyForTeaser = nextCaseStudy
-    ? {
-        slug: nextCaseStudy.slug,
-        title: nextCaseStudy.title,
-        vimeoId: nextCaseStudy.teaserVimeoId ?? '000000000',
-      }
-    : null;
+
+  const cookieStore = await cookies();
+  const unlockedCookie = cookieStore.get('unlocked_case_studies')?.value ?? '';
+  const isUnlockedStudy = isUnlocked(slug, unlockedCookie);
 
   return (
     <CaseStudyLayout
       caseStudy={caseStudy}
-      nextCaseStudy={nextCaseStudyForTeaser}
+      nextCaseStudy={nextCaseStudy}
+      isUnlocked={isUnlockedStudy}
     />
   );
 }
