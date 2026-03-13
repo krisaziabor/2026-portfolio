@@ -133,7 +133,7 @@ export function CaseStudySplitBlock({ block }: { block: SplitBlockProps }) {
         color: 'var(--color-content)',
       }}
     >
-      <div className="w-full">
+      <div className="w-full md:[&_p]:!max-w-[75%] md:[&_h2]:!max-w-[75%] md:[&_ul]:!max-w-[75%]">
         <ReactMarkdown
           components={{
             h2: ({ children }) => {

@@ -12,21 +12,28 @@ const navLinks = [
 
 export default function SiteHeader() {
   const pathname = usePathname();
+  const isPhotoPage = pathname === '/photo';
+
+  const bgColor = isPhotoPage ? '#141414' : '#F8F8F8';
+  const textColor = isPhotoPage ? 'rgba(232, 230, 230, 0.85)' : '#000';
+  const activeColor = isPhotoPage ? 'rgba(232, 230, 230, 0.35)' : 'rgba(0, 0, 0, 0.35)';
 
   return (
     <header
       className="sticky top-0 z-50 flex flex-col sm:flex-row sm:items-baseline sm:justify-between font-[family-name:var(--font-lector)] px-6 pt-5 pb-4 md:px-[72px] md:pt-9 md:pb-6"
       style={{
-        backgroundColor: '#F8F8F8',
+        backgroundColor: bgColor,
         fontSize: '15px',
         letterSpacing: '-0.01em',
         lineHeight: '1.4',
+        transition: 'background-color 300ms ease-in-out, color 300ms ease-in-out',
+        color: textColor,
       }}
     >
       <Link
         href="/"
-        className="transition-opacity duration-200 hover:opacity-50 mb-2 sm:mb-0"
-        style={{ color: '#000' }}
+        className="hover:opacity-50 mb-2 sm:mb-0"
+        style={{ color: textColor, transition: 'color 300ms ease-in-out, opacity 200ms ease-out' }}
       >
         Kristopher Aziabor
       </Link>
@@ -40,8 +47,8 @@ export default function SiteHeader() {
             <Link
               key={link.href}
               href={link.href}
-              className="transition-opacity duration-200 hover:opacity-50"
-              style={{ color: isActive ? 'rgba(0, 0, 0, 0.35)' : '#000' }}
+              className="hover:opacity-50"
+              style={{ color: isActive ? activeColor : textColor, transition: 'color 300ms ease-in-out, opacity 200ms ease-out' }}
             >
               {link.label}
             </Link>

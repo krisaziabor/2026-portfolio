@@ -87,15 +87,18 @@ export function VimeoEmbedFigure({
     <figure className="block my-0" style={figureStyle}>
       <div ref={containerRef} className="relative w-full" style={containerStyle}>
         <div style={videoWrapperStyle}>
-          <iframe
-            ref={iframeRef}
-            src={src ?? undefined}
-            title={caption}
-            className="absolute inset-0 w-full h-full"
-            allow={hasAudio ? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope' : 'autoplay; fullscreen; picture-in-picture'}
-            allowFullScreen
-            onLoad={() => { if (src) setIframeReady(true); }}
-          />
+          {src ? (
+            <iframe
+              ref={iframeRef}
+              src={src}
+              title={caption}
+              className="absolute inset-0 w-full h-full"
+              style={{ opacity: iframeReady ? 1 : 0, transition: 'opacity 0.4s' }}
+              allow={hasAudio ? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope' : 'autoplay; fullscreen; picture-in-picture'}
+              allowFullScreen
+              onLoad={() => setIframeReady(true)}
+            />
+          ) : null}
         </div>
         {showVideoSettings ? (
           <VideoOverlay paused={videoPaused} onToggle={() => videoControlsRef.current?.togglePlayPause()} />

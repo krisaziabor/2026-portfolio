@@ -1,60 +1,105 @@
 [
   {
     "index": 1,
+    "series": "BLACK BLUE BLACK BOY",
     "title": "Untitled (BLACK BLUE BLACK BOY)",
     "year": 2025,
     "src": "/photo/001.JPG"
   },
   {
     "index": 2,
+    "series": "BLACK BLUE BLACK BOY",
     "title": "Untitled (BLACK BLUE BLACK BOY)",
     "year": 2025,
     "src": "/photo/002.JPG"
   },
   {
     "index": 3,
+    "series": "BLACK BLUE BLACK BOY",
     "title": "Untitled (BLACK BLUE BLACK BOY)",
     "year": 2025,
     "src": "/photo/003.JPG"
   },
   {
     "index": 4,
+    "series": "BLACK BLUE BLACK BOY",
     "title": "Untitled (BLACK BLUE BLACK BOY)",
     "year": 2025,
     "src": "/photo/004.JPG"
   },
   {
     "index": 5,
+    "series": "ADS FOR SALE!",
     "title": "ADS FOR SALE!",
     "year": 2024,
     "src": "/photo/005.JPG"
   },
   {
     "index": 6,
+    "series": "ADS FOR SALE!",
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photo/011.jpg"
+  },
+  {
+    "index": 7,
+    "series": "ADS FOR SALE!",
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photo/012.jpg"
+  },
+  {
+    "index": 8,
+    "series": "ADS FOR SALE!",
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photo/013.jpg"
+  },
+  {
+    "index": 9,
+    "series": "ADS FOR SALE!",
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photo/014.jpg"
+  },
+  {
+    "index": 10,
+    "series": "ADS FOR SALE!",
+    "title": "ADS FOR SALE!",
+    "year": 2024,
+    "src": "/photo/015.jpg"
+  },
+  {
+    "index": 11,
+    "series": "Emirates (Arsenal)",
     "title": "Emirates (Arsenal)",
     "year": 2023,
     "src": "/photo/006.jpeg"
   },
   {
-    "index": 7,
+    "index": 12,
+    "series": "panopticon",
     "title": "panopticon",
     "year": 2022,
     "src": "/photo/007.JPG"
   },
   {
-    "index": 8,
+    "index": 13,
+    "series": "panopticon",
     "title": "panopticon",
     "year": 2022,
     "src": "/photo/008.JPG"
   },
   {
-    "index": 9,
+    "index": 14,
+    "series": "Self-portrait",
     "title": "Self-portrait",
     "year": 2019,
     "src": "/photo/009.jpg"
   },
   {
-    "index": 10,
+    "index": 15,
+    "series": "Self-portrait",
     "title": "Self-portrait",
     "year": 2019,
     "src": "/photo/010.JPG"

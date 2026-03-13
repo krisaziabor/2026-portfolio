@@ -95,8 +95,8 @@ const markdownComponents = {
       const hasAudio = params?.get('hasAudio') === 'true';
       const posterTime = params?.get('posterTime') ? Number(params.get('posterTime')) : undefined;
       const showVideoSettings = params?.get('showVideoSettings') === 'true';
-      const backgroundColor = params?.get('backgroundColor') ?? undefined;
-      const maximizeVideo = params?.get('maximizeVideo') === 'true';
+      const backgroundColor = params?.get('backgroundColor') ?? params?.get('fullBleedBackgroundColor') ?? undefined;
+      const maximizeVideo = params?.get('maximizeVideo') === 'true' || params?.get('fullBleedBackgroundColor') != null;
 
       return (
         <VimeoEmbedFigure

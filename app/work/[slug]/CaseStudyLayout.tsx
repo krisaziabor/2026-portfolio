@@ -4,12 +4,17 @@ import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { motion, useReducedMotion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import SiteHeader from '@/components/navigation/SiteHeader';
 import { CaseStudyBody } from '@/components/case-study/CaseStudyBody';
 import { CaseStudyTOC } from '@/components/case-study/CaseStudyTOC';
 import type { CaseStudy, CaseStudyHeroMedia, CaseStudyHeroChrome } from '@/types/case-study';
 import { verifyCaseStudyPassword } from './actions';
+
+// ease-out-expo — cinematic, responsive feel
+const EASE = [0.19, 1, 0.22, 1] as const;
+const DURATION = 0.7;
 
 interface CaseStudyLayoutProps {
   caseStudy: CaseStudy;
@@ -108,6 +113,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
   const [passwordValue, setPasswordValue] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const shouldReduceMotion = useReducedMotion();
   const hasHero = caseStudy.heroMedia || caseStudy.heroChrome;
   const introText = caseStudy.intro ?? '';
   const skipLabel = caseStudy.skipToSection ? `Skip to ${caseStudy.skipToSection} →` : 'Skip to content →';
@@ -116,15 +122,25 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
     : 'case-study-body';
   const showBody = !caseStudy.isProtected || isUnlocked;
 
+  const fadeUp = (delay: number, duration = DURATION) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration, ease: EASE, delay: shouldReduceMotion ? 0 : delay },
+  });
+
   return (
     <div className="h-screen flex flex-col" style={{ backgroundColor: '#F8F8F8' }}>
       <SiteHeader />
       <div className="flex flex-1 min-h-0">
 
         {/* Left TOC panel — desktop only */}
-        <div className="hidden xl:flex flex-col shrink-0 pt-12" style={{ width: '240px', paddingLeft: '72px' }}>
+        <motion.div
+          className="hidden xl:flex flex-col shrink-0 pt-12"
+          style={{ width: '240px', paddingLeft: '72px' }}
+          {...fadeUp(0.45)}
+        >
           {showBody && <CaseStudyTOC caseStudy={caseStudy} scrollContainerId="case-study-scroll" />}
-        </div>
+        </motion.div>
 
         {/* Main scroll area */}
         <div className="flex-1 overflow-y-auto scrollbar-hide flex justify-center items-start py-12 px-8" id="case-study-scroll">
@@ -132,7 +148,8 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
           className="flex flex-col items-center w-full"
           style={{ maxWidth: 'clamp(570px, 59.375vw, 1140px)', gap: '32px', paddingBottom: '30px' }}
         >
-          <div
+          {/* Card — y+scale only, no opacity so hero iframes always paint */}
+          <motion.div
             className="bg-white w-full overflow-hidden"
             style={{
               borderRadius: '4px',
@@ -141,11 +158,14 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
               minWidth: 0,
               minHeight: 728,
             }}
+            initial={shouldReduceMotion ? false : { y: 20, scale: 0.98 }}
+            animate={{ y: 0, scale: 1 }}
+            transition={{ duration: DURATION, ease: EASE, delay: shouldReduceMotion ? 0 : 0.1 }}
           >
             {/* Hero: optional browser chrome + media */}
             {hasHero && (
               <div
-                className="w-full overflow-hidden mb-[var(--space-4)]"
+                className="relative w-full overflow-hidden mb-[var(--space-4)]"
                 style={{
                   backgroundColor: caseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG,
                 }}
@@ -169,6 +189,16 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                     aria-hidden
                   />
                 )}
+                {/* Overlay dissolves to reveal the already-loaded hero video */}
+                {!shouldReduceMotion && (
+                  <motion.div
+                    className="absolute inset-0"
+                    style={{ backgroundColor: caseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG, zIndex: 2 }}
+                    initial={{ opacity: 1 }}
+                    animate={{ opacity: 0 }}
+                    transition={{ duration: 0.8, ease: EASE, delay: 0.35 }}
+                  />
+                )}
               </div>
             )}
             <div
@@ -180,22 +210,24 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
               }}
             >
 
-              {/* Headline (summary as hero title) */}
-              <h1
+              {/* Headline */}
+              <motion.h1
                 className="text-content font-normal mb-[var(--space-4)]"
                 style={{
                   fontSize: '20px',
                   letterSpacing: 'var(--tracking-body)',
                   lineHeight: 'var(--leading-body)',
                 }}
+                {...fadeUp(0.38)}
               >
                 {renderSummaryWithMarkdown(caseStudy.summary)}
-              </h1>
+              </motion.h1>
 
               {/* Two-column intro (and password row when protected): same grid so left column width matches */}
-              <div
+              <motion.div
                 className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-x-12 gap-y-[var(--space-2)] mb-[var(--space-6)]"
                 style={{ alignItems: 'start' }}
+                {...fadeUp(0.48)}
               >
                 <div className="min-w-0 w-full lg:max-w-[75%]">
                   {introText ? (
@@ -326,14 +358,14 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                     </div>
                   </>
                 )}
-              </div>
+              </motion.div>
 
               {/* Body markdown (gated when protected and not unlocked) */}
               <div id="case-study-body">
                 {showBody ? <CaseStudyBody caseStudy={caseStudy} /> : null}
               </div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Next case study preview: intro, metadata, heroMedia, "View case study →" */}
           {nextCaseStudy && (

@@ -3,6 +3,7 @@ import path from 'path';
 
 export interface Photo {
   index: number;
+  series: string;
   title: string;
   year?: number;
   src: string;
@@ -10,6 +11,7 @@ export interface Photo {
 
 interface PhotoJsonEntry {
   index?: number;
+  series?: string;
   title?: string;
   year?: number;
   src?: string;
@@ -39,6 +41,7 @@ export function getPhotos(): Photo[] {
 
         return {
           index,
+          series: typeof entry.series === 'string' ? entry.series : title,
           title,
           year: typeof entry.year === 'number' ? entry.year : undefined,
           src,

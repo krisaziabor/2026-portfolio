@@ -1,209 +1,305 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import type { Photo } from '@/lib/photos';
 
-interface PhotoPageClientProps {
-  photos: Photo[];
-  isNavExpanded?: boolean;
-}
+const STRIP_HEIGHT = 60; // px — rendered height of each thumbnail
+const GAP_RATIO = 4;     // outer (between-series) gap = 4× inner (within-series) gap
 
-const transitionDuration = 0.4;
-const easing = [0.22, 1, 0.36, 1] as const;
-const captionTransitionDuration = 0.2;
-const wheelCooldownMs = 1200; // One scroll gesture = one image; must exceed typical gesture duration
-const touchSwipeThreshold = 50; // Minimum swipe distance (px) to trigger navigation
-
-export default function PhotoPageClient({ photos, isNavExpanded = false }: PhotoPageClientProps) {
+export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  const lastNavigateTimeRef = useRef<number>(0);
-  const touchStartRef = useRef<{ y: number } | null>(null);
+  const [cursorPos, setCursorPos] = useState({ x: 0, y: 0 });
+  const [cursorVisible, setCursorVisible] = useState(false);
+  const [cursorOnRight, setCursorOnRight] = useState(true);
+  const [imageWidths, setImageWidths] = useState<Record<number, number>>({});
+  const [containerWidth, setContainerWidth] = useState(0);
 
+  const mainAreaRef = useRef<HTMLDivElement>(null);
+  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
+  const stripRef = useRef<HTMLDivElement>(null);
+  const isFirstMount = useRef(true);
+
+  const shouldReduceMotion = useReducedMotion();
   const total = photos.length;
   const currentPhoto = photos[currentIndex];
 
+  // Build series groups once (order preserved from photos array)
+  const { seriesOrder, seriesMap } = useMemo(() => {
+    const order: string[] = [];
+    const map: Record<string, { photo: Photo; i: number }[]> = {};
+    photos.forEach((photo, i) => {
+      if (!map[photo.series]) {
+        order.push(photo.series);
+        map[photo.series] = [];
+      }
+      map[photo.series].push({ photo, i });
+    });
+    return { seriesOrder: order, seriesMap: map };
+  }, [photos]);
+
+  // Catch images already loaded before onLoad handler was attached (SSR case)
+  useEffect(() => {
+    const widths: Record<number, number> = {};
+    let changed = false;
+    photos.forEach((photo, i) => {
+      const img = imgRefs.current[i];
+      if (img?.complete && img.naturalWidth > 0) {
+        widths[photo.index] = img.naturalWidth * (STRIP_HEIGHT / img.naturalHeight);
+        changed = true;
+      }
+    });
+    if (changed) setImageWidths(prev => ({ ...prev, ...widths }));
+  }, [photos]);
+
+  // Track strip container width
+  useEffect(() => {
+    const el = stripRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      setContainerWidth(entries[0].contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Calculate gaps once all image widths are known and container width is set
+  const { innerGap, outerGap } = useMemo(() => {
+    const allLoaded = photos.every(p => imageWidths[p.index] !== undefined);
+    if (!allLoaded || containerWidth <= 0) return { innerGap: 2, outerGap: 8 };
+
+    const totalImageWidth = photos.reduce((sum, p) => sum + (imageWidths[p.index] ?? 0), 0);
+    const numSeries = seriesOrder.length;
+    const innerGapCount = total - numSeries;   // gaps within series
+    const outerGapCount = numSeries - 1;       // gaps between series
+
+    const availableSpace = containerWidth - totalImageWidth;
+    const totalGapUnits = innerGapCount + outerGapCount * GAP_RATIO;
+
+    if (totalGapUnits <= 0 || availableSpace <= 0) return { innerGap: 2, outerGap: 8 };
+
+    const g = availableSpace / totalGapUnits;
+    return { innerGap: g, outerGap: g * GAP_RATIO };
+  }, [imageWidths, containerWidth, photos, seriesOrder, total]);
+
   const goToNext = useCallback(() => {
-    if (isTransitioning || total === 0) return;
-    setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev + 1) % total);
-  }, [total, isTransitioning]);
+    setCurrentIndex(prev => Math.min(prev + 1, total - 1));
+  }, [total]);
 
   const goToPrev = useCallback(() => {
-    if (isTransitioning || total === 0) return;
-    setIsTransitioning(true);
-    setCurrentIndex((prev) => (prev - 1 + total) % total);
-  }, [total, isTransitioning]);
-
-  // Refs for stable wheel handler (avoids stale closure)
-  const goToNextRef = useRef(goToNext);
-  const goToPrevRef = useRef(goToPrev);
-  goToNextRef.current = goToNext;
-  goToPrevRef.current = goToPrev;
-
-  // Reset transition lock after animation completes
-  useEffect(() => {
-    if (!isTransitioning) return;
-    const timer = setTimeout(() => setIsTransitioning(false), transitionDuration * 1000);
-    return () => clearTimeout(timer);
-  }, [isTransitioning, currentIndex]);
-
-  // Wheel-based navigation (desktop) - one scroll gesture = one image
-  useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const now = Date.now();
-      if (now - lastNavigateTimeRef.current < wheelCooldownMs) return;
-      lastNavigateTimeRef.current = now;
-      if (e.deltaY > 0) goToNextRef.current();
-      else if (e.deltaY < 0) goToPrevRef.current();
-    };
-
-    const container = document.getElementById('photo-page-container');
-    if (!container) return;
-
-    container.addEventListener('wheel', handleWheel, { passive: false });
-    return () => container.removeEventListener('wheel', handleWheel);
+    setCurrentIndex(prev => Math.max(prev - 1, 0));
   }, []);
 
-  // Touch swipe navigation (mobile) - swipe down = next, swipe up = prev
+  // Auto-scroll active thumbnail into view
   useEffect(() => {
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartRef.current = { y: e.touches[0].clientY };
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (!touchStartRef.current) return;
-      const deltaY = e.changedTouches[0].clientY - touchStartRef.current.y;
-      touchStartRef.current = null;
-
-      const now = Date.now();
-      if (now - lastNavigateTimeRef.current < wheelCooldownMs) return;
-      if (Math.abs(deltaY) < touchSwipeThreshold) return;
-
-      lastNavigateTimeRef.current = now;
-      if (deltaY > 0) goToNextRef.current(); // Swipe down = next
-      else goToPrevRef.current(); // Swipe up = prev
-    };
-
-    const container = document.getElementById('photo-page-container');
-    if (!container) return;
-
-    container.addEventListener('touchstart', handleTouchStart, { passive: true });
-    container.addEventListener('touchend', handleTouchEnd, { passive: true });
-    return () => {
-      container.removeEventListener('touchstart', handleTouchStart);
-      container.removeEventListener('touchend', handleTouchEnd);
-    };
-  }, []);
+    const thumb = thumbRefs.current[currentIndex];
+    if (thumb) {
+      thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+  }, [currentIndex]);
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowDown' || e.key === ' ') {
-        e.preventDefault();
-        goToNext();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        goToPrev();
-      }
+      if (e.key === 'ArrowRight') { e.preventDefault(); goToNext(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); goToPrev(); }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [goToNext, goToPrev]);
 
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    setCursorPos({ x: e.clientX, y: e.clientY });
+    const rect = mainAreaRef.current?.getBoundingClientRect();
+    if (rect) {
+      setCursorOnRight(e.clientX >= rect.left + rect.width / 2);
+    }
+  }, []);
+
+  const handleMainClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = mainAreaRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    if (e.clientX >= rect.left + rect.width / 2) goToNext();
+    else goToPrev();
+  }, [goToNext, goToPrev]);
+
   if (total === 0) return null;
 
-  const captionText = currentPhoto.year
-    ? `${currentPhoto.title}, ${currentPhoto.year}`
-    : currentPhoto.title;
+  const canGoNext = currentIndex < total - 1;
+  const canGoPrev = currentIndex > 0;
+  const cursorActive = cursorOnRight ? canGoNext : canGoPrev;
 
   return (
-    <div
-      id="photo-page-container"
-      className="flex flex-col items-center justify-center min-h-screen w-full overflow-hidden touch-manipulation"
-      style={{ backgroundColor: '#FFFFFF' }}
-    >
-      {/* Centered container: photo + caption; larger on mobile (90%), 2/3 viewport on desktop */}
-      <motion.div
-        className="inline-flex flex-col items-center gap-4 md:gap-6 px-4 md:px-8 w-full max-w-[90vw] md:max-w-[66.67vw]"
-        animate={{ y: isNavExpanded ? -96 : 0 }}
-        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+    <div className="flex-1 min-h-0 flex flex-col">
+
+      {/* Main interactive area: image + metadata */}
+      <div
+        ref={mainAreaRef}
+        className="flex-1 min-h-0 flex flex-col select-none relative"
+        style={{ cursor: 'none' }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setCursorVisible(true)}
+        onMouseLeave={() => setCursorVisible(false)}
+        onClick={handleMainClick}
       >
-        {/* Photo frame - 90% viewport on mobile, 2/3 on desktop; shown in totality */}
-        <div className="flex items-center justify-center w-full max-h-[90vh] md:max-h-[66.67vh]">
+        {/* Image */}
+        <div
+          className="flex-1 min-h-0 flex items-end overflow-hidden"
+          style={{ paddingTop: '24px', paddingLeft: '72px', paddingRight: '48px', paddingBottom: '40px' }}
+        >
           <AnimatePresence mode="wait">
-            <motion.div
+            <motion.img
               key={currentPhoto.index}
-              className="flex items-center justify-center"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{
-                opacity: 1,
-                y: 0,
-                transition: { duration: transitionDuration, ease: easing },
-              }}
-              exit={{
-                opacity: 0,
-                y: -20,
-                transition: { duration: transitionDuration, ease: easing },
-              }}
-            >
-              <img
-                src={currentPhoto.src}
-                alt={currentPhoto.title}
-                className="max-w-full max-h-[90vh] md:max-h-[66.67vh] w-auto h-auto object-contain"
-                loading="eager"
-                draggable={false}
-              />
-            </motion.div>
+              src={currentPhoto.src}
+              alt={currentPhoto.title}
+              className="block w-auto"
+              style={{ maxHeight: '100%', maxWidth: '100%' }}
+              initial={shouldReduceMotion ? false : isFirstMount.current
+                ? { opacity: 0, y: 20, scale: 0.97 }
+                : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={shouldReduceMotion ? {} : { opacity: 0, y: -4 }}
+              transition={isFirstMount.current
+                ? { duration: 0.75, ease: [0.19, 1, 0.22, 1] }
+                : { duration: 0.45, ease: [0.19, 1, 0.22, 1] }}
+              onAnimationStart={() => { isFirstMount.current = false; }}
+              draggable={false}
+            />
           </AnimatePresence>
         </div>
 
-        {/* Caption card - full width on mobile, 560px on desktop; only title and index transition subtly */}
-        <div className="flex items-center justify-between gap-6 w-full max-w-[560px] shrink-0 px-4 md:px-6 py-4 border border-[#E8E8E8] bg-white overflow-hidden">
-          <div className="min-w-0 flex-1 overflow-hidden">
-            <AnimatePresence mode="wait">
-              <motion.span
-                key={`title-${currentPhoto.index}`}
-                className="block text-content text-base font-[family-name:var(--font-body)]"
-                initial={{ opacity: 0.6 }}
-                animate={{
-                  opacity: 1,
-                  transition: { duration: captionTransitionDuration, ease: easing },
-                }}
-                exit={{
-                  opacity: 0.6,
-                  transition: { duration: captionTransitionDuration * 0.5, ease: easing },
-                }}
-              >
-                {captionText}
-              </motion.span>
-            </AnimatePresence>
-          </div>
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={`index-${currentPhoto.index}`}
-              className="text-metadata text-base font-[family-name:var(--font-body)] shrink-0"
-              style={{ letterSpacing: 'var(--tracking-body)' }}
-              initial={{ opacity: 0.6 }}
-              animate={{
-                opacity: 1,
-                transition: { duration: captionTransitionDuration, ease: easing },
-              }}
-              exit={{
-                opacity: 0.6,
-                transition: { duration: captionTransitionDuration * 0.5, ease: easing },
-              }}
-            >
-              <span className="text-content font-medium">{currentPhoto.index}</span>
-              {' of '}
-              <span>{total}</span>
-            </motion.span>
-          </AnimatePresence>
-        </div>
-      </motion.div>
+        {/* Metadata: absolutely positioned to align with image bottom */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={currentPhoto.index}
+            style={{
+              position: 'absolute',
+              bottom: '54px',
+              right: '72px',
+              fontFamily: 'var(--font-lector)',
+              fontSize: '15px',
+              letterSpacing: 'var(--tracking-body)',
+              lineHeight: 'var(--leading-body)',
+              color: 'rgba(232,230,230,0.85)',
+              textAlign: 'right',
+              pointerEvents: 'none',
+            }}
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={shouldReduceMotion ? {} : { opacity: 0 }}
+            transition={isFirstMount.current
+              ? { duration: 0.65, ease: [0.19, 1, 0.22, 1], delay: 0.1 }
+              : { duration: 0.4, ease: [0.19, 1, 0.22, 1], delay: 0.05 }}
+          >
+            {currentPhoto.title}
+            {currentPhoto.year ? `, ${currentPhoto.year}` : ''}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Thumbnail strip — grouped by series, full-width with calculated gaps */}
+      <div
+        ref={stripRef}
+        className="shrink-0 flex items-center"
+        style={{
+          height: '72px',
+          paddingLeft: '72px',
+          paddingRight: '72px',
+        }}
+      >
+        {seriesOrder.map((series, si) => {
+          const group = seriesMap[series];
+          return (
+            <div key={series} className="flex items-center shrink-0">
+              {/* Inter-series gap (not before first series) */}
+              {si > 0 && <div style={{ width: outerGap, flexShrink: 0 }} />}
+
+              {group.map(({ photo, i }, gi) => (
+                <div key={photo.index} className="flex items-center shrink-0">
+                  {/* Intra-series gap (not before first image in group) */}
+                  {gi > 0 && <div style={{ width: innerGap, flexShrink: 0 }} />}
+
+                  <motion.div
+                    className="shrink-0"
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.5,
+                      ease: [0.23, 1, 0.32, 1],
+                      delay: shouldReduceMotion ? 0 : 0.3 + i * 0.03,
+                    }}
+                  >
+                    <button
+                      ref={el => { thumbRefs.current[i] = el; }}
+                      onClick={e => { e.stopPropagation(); setCurrentIndex(i); }}
+                      className="shrink-0 block"
+                      style={{
+                        height: `${STRIP_HEIGHT}px`,
+                        padding: 0,
+                        border: 'none',
+                        background: 'none',
+                        cursor: 'pointer',
+                        opacity: i === currentIndex ? 1 : 0.35,
+                        transition: shouldReduceMotion ? 'none' : 'opacity 150ms ease-out',
+                      }}
+                    >
+                      <img
+                        ref={el => { imgRefs.current[i] = el; }}
+                        src={photo.src}
+                        alt={photo.title}
+                        draggable={false}
+                        style={{ height: '100%', width: 'auto', display: 'block' }}
+                        onLoad={e => {
+                          const img = e.currentTarget;
+                          const rendered = img.naturalWidth * (STRIP_HEIGHT / img.naturalHeight);
+                          setImageWidths(prev => ({ ...prev, [photo.index]: rendered }));
+                        }}
+                      />
+                    </button>
+                  </motion.div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Custom cursor */}
+      <AnimatePresence>
+        {cursorVisible && (
+          <motion.div
+            className="fixed pointer-events-none z-50 select-none"
+            style={{
+              left: cursorPos.x,
+              top: cursorPos.y,
+              transform: 'translate(-50%, -50%)',
+              fontFamily: 'var(--font-lector)',
+              fontSize: '13px',
+              letterSpacing: '0.05em',
+              whiteSpace: 'nowrap',
+              color: cursorActive ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.2)',
+              transition: shouldReduceMotion ? 'none' : 'color 150ms ease-out',
+            }}
+            initial={shouldReduceMotion ? false : { opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={shouldReduceMotion ? {} : { opacity: 0 }}
+            transition={{ duration: 0.1, ease: 'easeOut' }}
+          >
+            {currentIndex + 1} of {total}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Preload adjacent images */}
+      {currentIndex > 0 && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photos[currentIndex - 1].src} alt="" aria-hidden style={{ display: 'none' }} />
+      )}
+      {currentIndex < total - 1 && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={photos[currentIndex + 1].src} alt="" aria-hidden style={{ display: 'none' }} />
+      )}
     </div>
   );
 }
