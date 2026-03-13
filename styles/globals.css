@@ -67,6 +67,14 @@ html {
   --link-white-space: nowrap;
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 body {
   font-family: "Lector FSL", Georgia, serif !important;
   font-size: var(--font-size-base);

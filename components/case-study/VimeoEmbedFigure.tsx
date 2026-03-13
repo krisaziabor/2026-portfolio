@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { VideoSettingsControls, type VideoSettingsControlsHandle } from './VideoSettingsControls';
 import { VideoOverlay } from './VideoOverlay';
 
@@ -34,9 +34,11 @@ export function VimeoEmbedFigure({
   captionStyle,
 }: VimeoEmbedFigureProps) {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const videoControlsRef = useRef<VideoSettingsControlsHandle | null>(null);
   const [iframeReady, setIframeReady] = useState(false);
   const [videoPaused, setVideoPaused] = useState(true);
+  const [src, setSrc] = useState<string | null>(null);
 
   const embedParams = new URLSearchParams({
     ...(hasAudio ? { muted: '0' } : { background: '1', autoplay: '1', loop: '1', muted: '1' }),
@@ -45,9 +47,29 @@ export function VimeoEmbedFigure({
   });
   const embedUrl = `https://player.vimeo.com/video/${vimeoId}?${embedParams}`;
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setSrc(embedUrl);
+        } else {
+          setSrc(null);
+          setIframeReady(false);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [embedUrl]);
+
   const containerStyle: React.CSSProperties = {
     aspectRatio: '16 / 9',
-    ...(backgroundColor != null ? { backgroundColor } : {}),
+    backgroundColor: backgroundColor ?? '#E8E8E8',
   };
   const videoWrapperStyle: React.CSSProperties =
     backgroundColor != null && !maximizeVideo
@@ -63,16 +85,16 @@ export function VimeoEmbedFigure({
 
   return (
     <figure className="block my-0" style={figureStyle}>
-      <div className="relative w-full" style={containerStyle}>
+      <div ref={containerRef} className="relative w-full" style={containerStyle}>
         <div style={videoWrapperStyle}>
           <iframe
             ref={iframeRef}
-            src={embedUrl}
+            src={src ?? undefined}
             title={caption}
             className="absolute inset-0 w-full h-full"
             allow={hasAudio ? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope' : 'autoplay; fullscreen; picture-in-picture'}
             allowFullScreen
-            onLoad={() => setIframeReady(true)}
+            onLoad={() => { if (src) setIframeReady(true); }}
           />
         </div>
         {showVideoSettings ? (

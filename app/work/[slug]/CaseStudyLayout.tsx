@@ -4,11 +4,10 @@ import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-import type { ReactNode } from 'react';
-import NavigationCard from '@/components/navigation/NavigationCard';
+import SiteHeader from '@/components/navigation/SiteHeader';
 import { CaseStudyBody } from '@/components/case-study/CaseStudyBody';
+import { CaseStudyTOC } from '@/components/case-study/CaseStudyTOC';
 import type { CaseStudy, CaseStudyHeroMedia, CaseStudyHeroChrome } from '@/types/case-study';
 import { verifyCaseStudyPassword } from './actions';
 
@@ -106,7 +105,6 @@ function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; back
 }
 
 export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseStudyLayoutProps) {
-  const [isNavExpanded, setIsNavExpanded] = useState(false);
   const [passwordValue, setPasswordValue] = useState('');
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -119,13 +117,22 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
   const showBody = !caseStudy.isProtected || isUnlocked;
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden" style={{ backgroundColor: '#F8F8F8' }}>
-      <div className="flex items-center justify-center min-h-screen py-12 px-8 pb-32">
+    <div className="h-screen flex flex-col" style={{ backgroundColor: '#F8F8F8' }}>
+      <SiteHeader />
+      <div className="flex flex-1 min-h-0">
+
+        {/* Left TOC panel — desktop only */}
+        <div className="hidden xl:flex flex-col shrink-0 pt-12" style={{ width: '240px', paddingLeft: '72px' }}>
+          {showBody && <CaseStudyTOC caseStudy={caseStudy} scrollContainerId="case-study-scroll" />}
+        </div>
+
+        {/* Main scroll area */}
+        <div className="flex-1 overflow-y-auto scrollbar-hide flex justify-center items-start py-12 px-8" id="case-study-scroll">
         <div
           className="flex flex-col items-center w-full"
-          style={{ maxWidth: 'clamp(570px, 59.375%, 1140px)', gap: '32px', paddingBottom: '30px' }}
+          style={{ maxWidth: 'clamp(570px, 59.375vw, 1140px)', gap: '32px', paddingBottom: '30px' }}
         >
-          <motion.div
+          <div
             className="bg-white w-full overflow-hidden"
             style={{
               borderRadius: '4px',
@@ -134,8 +141,6 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
               minWidth: 0,
               minHeight: 728,
             }}
-            animate={{ y: isNavExpanded ? -96 : 0 }}
-            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
             {/* Hero: optional browser chrome + media */}
             {hasHero && (
@@ -189,13 +194,10 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
 
               {/* Two-column intro (and password row when protected): same grid so left column width matches */}
               <div
-                className="grid gap-x-12 gap-y-[var(--space-2)] mb-[var(--space-6)]"
-                style={{
-                  gridTemplateColumns: '1fr auto',
-                  alignItems: 'start',
-                }}
+                className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-x-12 gap-y-[var(--space-2)] mb-[var(--space-6)]"
+                style={{ alignItems: 'start' }}
               >
-                <div className="min-w-0" style={{ maxWidth: '75%' }}>
+                <div className="min-w-0 w-full lg:max-w-[75%]">
                   {introText ? (
                     <div
                       className="text-content"
@@ -230,7 +232,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                 </div>
                 {caseStudy.metadata && caseStudy.metadata.length > 0 ? (
                   <div
-                    className="flex flex-col text-left"
+                    className="flex flex-col text-left order-first lg:order-none"
                     style={{ gap: '0', fontSize: '15px' }}
                   >
                     {caseStudy.metadata.map((item, index) => (
@@ -249,7 +251,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                 {/* Password intro row: same grid, left column matches intro left */}
                 {caseStudy.isProtected && !isUnlocked && (
                   <>
-                    <div className="min-w-0" style={{ maxWidth: '75%' }}>
+                    <div className="min-w-0 w-full md:max-w-[75%]">
                       {caseStudy.passwordIntro ? (
                         <div
                           className="text-content [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)]"
@@ -331,11 +333,11 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                 {showBody ? <CaseStudyBody caseStudy={caseStudy} /> : null}
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Next case study preview: intro, metadata, heroMedia, "View case study →" */}
           {nextCaseStudy && (
-            <motion.div
+            <div
               className="w-full bg-white overflow-hidden shrink-0"
               style={{
                 marginTop: 'var(--space-8)',
@@ -422,7 +424,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                       className="inline-block mt-[var(--space-2)] text-interactive transition-opacity duration-[var(--duration-default)] hover:opacity-70"
                       style={{ color: 'var(--color-interactive)' }}
                     >
-                      View case study →
+                      View next case study →
                     </Link>
                   </div>
                   {nextCaseStudy.metadata && nextCaseStudy.metadata.length > 0 ? (
@@ -442,15 +444,14 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                   ) : null}
                 </div>
               </div>
-            </motion.div>
+            </div>
           )}
         </div>
-      </div>
+        </div>{/* end main scroll area */}
 
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center pb-8 pointer-events-none">
-        <div className="pointer-events-auto">
-          <NavigationCard onExpandedChange={setIsNavExpanded} />
-        </div>
+        {/* Right balance spacer — desktop only */}
+        <div className="hidden xl:block shrink-0" style={{ width: '240px' }} />
+
       </div>
     </div>
   );

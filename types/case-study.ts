@@ -111,11 +111,19 @@ export interface CaseStudyTextSplitBlock {
   right: string;
 }
 
+/** Emphasized question callout (terracotta left bar) rendered in normal flow. */
+export interface CaseStudyQuestionBlock {
+  type: 'question';
+  /** Markdown content for the question text. */
+  content: string;
+}
+
 /** Body block: markdown segment, media split, or text-only split block. */
 export type CaseStudyBodyBlock =
   | { type: 'markdown'; content: string }
   | CaseStudySplitBlock
-  | CaseStudyTextSplitBlock;
+  | CaseStudyTextSplitBlock
+  | CaseStudyQuestionBlock;
 
 export interface CaseStudy {
   slug: string;

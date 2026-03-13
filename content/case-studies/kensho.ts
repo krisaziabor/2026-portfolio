@@ -8,26 +8,23 @@ export const kensho: CaseStudy = {
   client: 'Kensho',
   isProtected: true,
   sequence: 1,
-  summary: 'Building user trust in AI at *Kensho & S&P Global*',
+  summary: 'Substantiating AI at *Kensho* & *S&P Global*',
   tags: [],
   metadata: [
     { key: 'Timeline', value: 'September to December 2025' },
-    { key: 'Company', value: 'Kensho Technologies, S&P Global' },
+    { key: 'Company', value: 'Kensho, S&P Global' },
     { key: 'Role', value: 'Product Design Intern (part-time)' },
-    { key: 'Stack', value: 'Figma (Design, Jam, Make)' },
   ],
   intro: `
-During the fall of my senior year at Yale, I joined Kensho as a part-time product design intern. 
-
-I designed features instilling trust in AI generated financial insights for Kensho's users across two products—Corsa, a financial report generation tool and Grounding POC, a mock interface showcasing the capabilities of their powerful API.
+AI-generated financial reports are only useful if users trust what's in them. At Kensho, I designed citation and data attribution systems across two financial products that let users trace every claim and calculation back to its source.
   `,
   passwordIntro: `
   This case study reveals designs for Kensho products that the company wishes to keep private. To respect their policy, my designs are password-protected. Please [contact me](mailto:kris.aziabor@yale.edu) if you would like access.
   `,
-  heroBackgroundColor: '#004253',
+  heroBackgroundColor: '#ECEEEE',
   heroMedia: {
-    type: 'image',
-    src: `${base}/TempKenshoCover.png`,
+    type: 'video',
+    vimeoId: '1173131650',
     alt: "Kensho's cover image",
   },
   skipToSection: 'designs',
@@ -39,17 +36,20 @@ I designed features instilling trust in AI generated financial insights for Kens
       content: `
 ## Context
 
-*Note: To differentiate between the two products, I will use blue background colors for Corsa and gray for Grounding POC.*
+*Note: To differentiate between the two products, I will use blue background colors for Project X and gray for Grounding POC.*
 
-### Corsa, or Project X
+### Project X
 
-![Corsa's report editor page at the start of my internship](${base}/ProjectX-Before.png)
+![Project X's report editor page at the start of my internship](${base}/ProjectX-Before.png)
       `.trim(),
     },
     {
-      type: 'text-split',
-      left: `A tool for research analysts, *Corsa*—named Project X during my internship— is a financial report writing tool that allows users to input sources and collaborate on the working process with Agent X, a powerful AI agent backed with resources such as S&P data. Agent X can write report text, bring in outside sources, and cite text from them.`,
-      right: `*How can users quickly—and if needed, thoroughly—verify that Agent X's content is trustworthy?*`,
+      type: 'markdown',
+      content: `A tool for research analysts, *Project X* is a financial report writing tool that allows users to input sources and collaborate on the working process with Agent X, a powerful AI agent backed with resources such as S&P data. Agent X can write report text, bring in outside sources, and cite text from them.`,
+    },
+    {
+      type: 'question',
+      content: `How can users quickly and thoroughly verify that Agent X's content is accurate?`,
     },
     {
       type: 'markdown',
@@ -62,15 +62,12 @@ I designed features instilling trust in AI generated financial insights for Kens
       `.trim(),
     },
     {
-      type: 'text-split',
-      left: `The Grounding POC interface is rich with numbers and text, all tied to sources.`,
-      right: `*How do we present users with the power to trace everything back to its source without it becoming overbearing & sacrificing clarity and ease of use?*`,
+      type: 'markdown',
+      content: `The Grounding POC interface is rich with numbers and text, all tied to sources. Need smth more here`,
     },
     {
-      type: 'text-split',
-      left: `The citation methods used in generalized chat interfaces are too simplistic for our users.
-Specifically, Grounding’s text response treats data in two ways: direct mentions & summaries/derived calculations.`,
-      right: `*How do we account and display Grounding Agent’s two processes clearly and distinctly?*`,
+      type: 'question',
+      content: `How do we present users with the power to trace everything back to its source without it becoming overbearing?`,
     },
     {
       type: 'markdown',
@@ -81,7 +78,7 @@ A little talk about design process of research, discussion of scope with devs, s
 
 ## Designs
 
-I solved my Kensho product problems through introducing a) a citation system, b) expanding the visibility and depth of source information, and c) granting users new powers with sources.
+While the final designs differed across products, I solved the central problems of each using the same three practices: 1) introducing a citation system, 2) expanding the visibility and depth of source information, and 3) granting users new powers with sources.
 
 ### Citation System
 

@@ -163,11 +163,8 @@ export function CaseStudySplitBlock({ block }: { block: SplitBlockProps }) {
 
   return (
     <div
-      className="grid items-center my-[var(--space-4)] w-full"
-      style={{
-        gridTemplateColumns: '1fr 1fr',
-        gap: 'var(--space-3)',
-      }}
+      className="grid grid-cols-1 md:grid-cols-2 items-start md:items-center my-[var(--space-4)] w-full"
+      style={{ gap: 'var(--space-3)' }}
     >
       {isMediaLeft ? (
         <>

@@ -1,8 +1,5 @@
-'use client';
-
 import ReactMarkdown from 'react-markdown';
 import type { ReactNode } from 'react';
-import type { CaseStudyTextSplitBlock as TextSplitBlockProps } from '@/types/case-study';
 
 function getHeadingText(children: ReactNode): string {
   if (typeof children === 'string') return children;
@@ -18,9 +15,17 @@ function slugifyHeading(text: string): string {
 }
 
 const proseClasses =
-  'prose prose-sm max-w-none font-[family-name:var(--font-lector)] lector-font [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)] [&_p]:mb-[var(--space-2)] [&_p:last-child]:mb-0 [&_p]:max-w-full [&_h2]:mt-[var(--space-2)] [&_h2]:mb-[var(--space-2)] [&_h2]:font-normal [&_ul]:my-[var(--space-2)] [&_ul]:max-w-full [&_li]:mb-1';
+  'prose prose-sm font-[family-name:var(--font-lector)] lector-font [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)] [&_p]:mb-[var(--space-2)] [&_p:last-child]:mb-0 [&_p]:max-w-full [&_h2]:mt-[var(--space-2)] [&_h2]:mb-[var(--space-2)] [&_h2]:font-normal [&_ul]:my-[var(--space-2)] [&_ul]:max-w-full [&_li]:mb-1';
 
-export function CaseStudyTextSplitBlock({ block }: { block: TextSplitBlockProps }) {
+export function CaseStudyQuestionCallout({
+  markdown,
+  contentPaddingLeft,
+  contentPaddingRight,
+}: {
+  markdown: string;
+  contentPaddingLeft: number;
+  contentPaddingRight: number;
+}) {
   const commonTextStyles = {
     fontSize: '15px',
     lineHeight: 'var(--leading-body)',
@@ -29,14 +34,16 @@ export function CaseStudyTextSplitBlock({ block }: { block: TextSplitBlockProps 
   } as const;
 
   const barWidthPx = 6;
-  const questionTextInsetStyle = {
-    paddingLeft: `calc(var(--space-2) + ${barWidthPx}px)`,
-  } as const;
-
-  const questionCalloutClasses =
+  const calloutClasses =
     'relative my-[clamp(var(--space-6),6vw,var(--space-8))] px-0 py-[16px]';
 
-  const questionCalloutBarStyle = {
+  const fullBleedStyle = {
+    marginLeft: -contentPaddingLeft,
+    marginRight: -contentPaddingRight,
+    width: `calc(100% + ${contentPaddingLeft + contentPaddingRight}px)`,
+  } as const;
+
+  const barStyle = {
     position: 'absolute',
     left: 0,
     top: 0,
@@ -63,27 +70,23 @@ export function CaseStudyTextSplitBlock({ block }: { block: TextSplitBlockProps 
     strong: ({ children }: { children?: ReactNode }) => (
       <strong className="font-bold">{children}</strong>
     ),
-  };
-
-  const questionMarkdownComponents = {
-    ...markdownComponents,
     em: ({ children }: { children?: ReactNode }) => <span>{children}</span>,
   };
 
   return (
-    <div
-      className="grid grid-cols-1 md:grid-cols-2 items-start my-[var(--space-4)] w-full"
-      style={{ gap: 'var(--space-3)' }}
-    >
-      <div className={`min-w-0 ${proseClasses}`} style={commonTextStyles}>
-        <ReactMarkdown components={markdownComponents}>{block.left}</ReactMarkdown>
-      </div>
-      <div className={`min-w-0 ${proseClasses}`} style={commonTextStyles}>
-        <div className={questionCalloutClasses} style={questionTextInsetStyle}>
-          <span aria-hidden="true" style={questionCalloutBarStyle} />
-          <ReactMarkdown components={questionMarkdownComponents}>
-            {block.right}
-          </ReactMarkdown>
+    <div className="relative block my-0" style={fullBleedStyle}>
+      <span aria-hidden="true" style={barStyle} />
+      <div
+        className="min-w-0"
+        style={{
+          paddingLeft: contentPaddingLeft,
+          paddingRight: contentPaddingRight,
+        }}
+      >
+        <div className={`${proseClasses} min-w-0 max-w-full md:max-w-[50%] md:[&_p]:max-w-full`} style={commonTextStyles}>
+          <div className={calloutClasses}>
+            <ReactMarkdown components={markdownComponents}>{markdown}</ReactMarkdown>
+          </div>
         </div>
       </div>
     </div>
