@@ -7,7 +7,7 @@ import SiteHeader from '@/components/navigation/SiteHeader';
 import { caseStudies } from '@/content/case-studies';
 import type { CaseStudyHeroMedia } from '@/types/case-study';
 
-const MotionLink = motion(Link);
+const MotionLink = motion.create(Link);
 
 // ease-out-expo for cinematic entrances
 const EASE = [0.19, 1, 0.22, 1] as const;
@@ -44,7 +44,7 @@ function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; back
   if (media.type === 'video' && media.vimeoId) {
     const hasAudio = media.hasAudio ?? false;
     const embedParams = new URLSearchParams({
-      ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1' }),
+      ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1', playsinline: '1' }),
     });
     const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
     return (
@@ -84,7 +84,7 @@ export default function Home() {
           fontSize: '15px',
           letterSpacing: '-0.01em',
           lineHeight: '1.4',
-          color: '#000',
+          color: 'var(--color-content)',
         }}
       >
         <motion.p {...fadeUp(0.1)}>
@@ -157,7 +157,7 @@ export default function Home() {
                       fontSize: '15px',
                       letterSpacing: '-0.01em',
                       lineHeight: '1.4',
-                      color: '#000',
+                      color: 'var(--color-content)',
                     }}
                   >
                     {renderWithMarkdown(study.summary)}

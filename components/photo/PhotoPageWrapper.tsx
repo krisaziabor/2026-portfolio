@@ -12,7 +12,7 @@ interface PhotoPageWrapperProps {
 export default function PhotoPageWrapper({ photos }: PhotoPageWrapperProps) {
   return (
     <motion.main
-      className="h-screen flex flex-col"
+      className="photo-page h-screen flex flex-col"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}

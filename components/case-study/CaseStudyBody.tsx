@@ -34,7 +34,7 @@ const CONTENT_PADDING_LEFT = 20;
 const CONTENT_PADDING_RIGHT = 24;
 
 const proseClasses =
-  'prose prose-sm max-w-none font-[family-name:var(--font-lector)] lector-font [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)] [&_p]:mb-[var(--space-2)] [&_p:last-child]:mb-0 [&_p]:max-w-full md:[&_p]:max-w-[50%] [&_p:has(>figure)]:max-w-none [&_p:has(>figure)]:w-full [&_h2]:mt-[var(--space-6)] [&_h2]:mb-[var(--space-2)] [&_h2]:font-normal [&_h2]:max-w-full md:[&_h2]:max-w-[50%] [&_ul]:my-[var(--space-2)] [&_ul]:max-w-full md:[&_ul]:max-w-[50%] [&_li]:mb-1';
+  'prose prose-sm max-w-none font-[family-name:var(--font-lector)] lector-font [&_a]:no-underline [&_p]:mb-[var(--space-2)] [&_p:last-child]:mb-0 [&_p]:max-w-full md:[&_p]:max-w-[50%] [&_p:has(>figure)]:max-w-none [&_p:has(>figure)]:w-full [&_h2]:mt-[var(--space-6)] [&_h2]:mb-[var(--space-2)] [&_h2]:font-normal [&_h2]:max-w-full md:[&_h2]:max-w-[50%] [&_ul]:my-[var(--space-2)] [&_ul]:max-w-full md:[&_ul]:max-w-[50%] [&_li]:mb-1';
 
 const markdownComponents = {
   h2: ({ children }: { children?: ReactNode }) => {
@@ -56,7 +56,7 @@ const markdownComponents = {
     );
   },
   a: ({ href, children }: { href?: string; children?: ReactNode }) => (
-    <a href={href} style={{ color: 'var(--color-interactive)' }}>
+    <a href={href}>
       {children}
     </a>
   ),

@@ -26,7 +26,7 @@
 }
 
 @theme {
-  --color-content: #000000;
+  --color-content: #404040;
   --color-metadata: #6B6B6B;
   --color-interactive: #8B6B5A;
   --color-background: #FFFFFF;
@@ -38,7 +38,7 @@ html {
 
 :root {
   /* Colors */
-  --color-content: #000000;
+  --color-content: #404040;
   --color-metadata: #6B6B6B;
   --color-interactive: #8B6B5A;
   --color-background: #FFFFFF;
@@ -88,14 +88,25 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Link text breaking control - toggle via --link-white-space variable */
-/* Set --link-white-space: nowrap; to prevent breaks (default) */
-/* Set --link-white-space: normal; to allow wrapping for responsiveness */
-a {
-  white-space: var(--link-white-space, nowrap);
+/* Link base styles in @layer base so Tailwind utilities (hover:text-*, hover:opacity-*)
+   have higher cascade priority and can override per-element. */
+@layer base {
+  a {
+    color: #000000;
+    white-space: var(--link-white-space, nowrap);
+    transition: color 150ms ease;
+  }
+  a:hover {
+    color: var(--color-interactive);
+  }
 }
 
 /* Academy page links: allow title text to wrap */
 .academy-page a {
   white-space: normal;
+}
+
+/* Photo page: suppress the terracotta hover — nav links there dim via opacity instead */
+.photo-page a:hover {
+  color: inherit;
 }

@@ -11,11 +11,11 @@ export function DiptychText({ content, sectionLabel }: DiptychTextProps) {
       {sectionLabel && sectionLabel !== 'Overview' && (
         <p className="text-metadata text-sm mb-[var(--space-2)]">{sectionLabel}</p>
       )}
-      <div className="prose prose-sm max-w-none [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)]">
+      <div className="prose prose-sm max-w-none [&_a]:text-black [&_a]:no-underline [&_a:hover]:text-[#8B6B5A] [&_a]:transition-colors [&_a]:duration-150">
         <ReactMarkdown
           components={{
             a: ({ href, children }) => (
-              <a href={href} className="text-interactive">
+              <a href={href}>
                 {children}
               </a>
             ),

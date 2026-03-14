@@ -41,7 +41,7 @@ export function VimeoEmbedFigure({
   const [src, setSrc] = useState<string | null>(null);
 
   const embedParams = new URLSearchParams({
-    ...(hasAudio ? { muted: '0' } : { background: '1', autoplay: '1', loop: '1', muted: '1' }),
+    ...(hasAudio ? { muted: '0' } : { background: '1', autoplay: '1', loop: '1', muted: '1', playsinline: '1' }),
     ...(posterTime != null && hasAudio ? { t: String(posterTime) } : {}),
     ...(showVideoSettings ? { controls: '0' } : {}),
   });

@@ -24,7 +24,7 @@ Major players amongst Internet spaces – from Google to TikTok – will priorit
   heroBackgroundColor: "#2E070E",
   heroMedia: {
     type: "image",
-    src: `${base}/LinkUs-Cover.png`,
+    src: `${base}/Linkus-Cover.png`,
     alt: "LinkUs's cover image",
   },
   skipToSection: "designs",

@@ -4,7 +4,7 @@ import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import SiteHeader from '@/components/navigation/SiteHeader';
 import { CaseStudyBody } from '@/components/case-study/CaseStudyBody';
@@ -90,7 +90,7 @@ function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; back
   if (media.type === 'video' && media.vimeoId) {
     const hasAudio = media.hasAudio ?? false;
     const embedParams = new URLSearchParams({
-      ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1' }),
+      ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1', playsinline: '1' }),
       ...(media.posterTime != null && hasAudio ? { t: String(media.posterTime) } : {}),
     });
     const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
@@ -112,6 +112,8 @@ function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; back
 export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseStudyLayoutProps) {
   const [passwordValue, setPasswordValue] = useState('');
   const [isPending, startTransition] = useTransition();
+  const [passwordError, setPasswordError] = useState(false);
+  const [locallyUnlocked, setLocallyUnlocked] = useState(false);
   const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
   const hasHero = caseStudy.heroMedia || caseStudy.heroChrome;
@@ -120,7 +122,8 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
   const skipTargetId = caseStudy.skipToSection
     ? caseStudy.skipToSection.toLowerCase().replace(/\s+/g, '-')
     : 'case-study-body';
-  const showBody = !caseStudy.isProtected || isUnlocked;
+  const showBody = !caseStudy.isProtected || isUnlocked || locallyUnlocked;
+  const showPasswordSection = caseStudy.isProtected && !isUnlocked && !locallyUnlocked;
 
   const fadeUp = (delay: number, duration = DURATION) => ({
     initial: shouldReduceMotion ? false : { opacity: 0, y: 10 },
@@ -255,8 +258,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                         el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
                         window.history.pushState(null, '', `#${skipTargetId}`);
                       }}
-                      className="inline-block mt-[var(--space-2)] text-interactive transition-opacity duration-[var(--duration-default)] hover:opacity-70"
-                      style={{ color: 'var(--color-interactive)' }}
+                      className="inline-block mt-[var(--space-2)]"
                     >
                       {skipLabel}
                     </Link>
@@ -276,17 +278,17 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                       </p>
                     ))}
                   </div>
-                ) : !caseStudy.isProtected || isUnlocked ? null : (
+                ) : !showPasswordSection ? null : (
                   <div aria-hidden style={{ width: '14rem', minWidth: '14rem' }} />
                 )}
 
                 {/* Password intro row: same grid, left column matches intro left */}
-                {caseStudy.isProtected && !isUnlocked && (
+                {showPasswordSection && (
                   <>
                     <div className="min-w-0 w-full md:max-w-[75%]">
                       {caseStudy.passwordIntro ? (
                         <div
-                          className="text-content [&_a]:text-interactive [&_a]:no-underline [&_a:hover]:opacity-70 [&_a]:transition-opacity [&_a]:duration-[var(--duration-default)]"
+                          className="text-content [&_a]:no-underline"
                           style={{
                             fontSize: '15px',
                             lineHeight: 'var(--leading-body)',
@@ -299,9 +301,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                                 <p className="mb-[var(--space-2)] last:mb-0">{children}</p>
                               ),
                               a: ({ href, children }) => (
-                                <a href={href} style={{ color: 'var(--color-interactive)' }}>
-                                  {children}
-                                </a>
+                                <a href={href} className="text-black transition-colors duration-150 hover:text-[#8B6B5A]">{children}</a>
                               ),
                             }}
                           >
@@ -314,47 +314,82 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                       className="flex flex-col text-left"
                       style={{ fontSize: '15px', color: 'var(--color-content)' }}
                     >
-                      <form
+                      <motion.form
                         onSubmit={(e) => {
                           e.preventDefault();
                           if (!passwordValue.trim()) return;
+                          setPasswordError(false);
                           startTransition(async () => {
                             const result = await verifyCaseStudyPassword(caseStudy.slug, passwordValue);
-                            if (result.success) router.refresh();
+                            if (result.success) {
+                              setLocallyUnlocked(true);
+                              router.refresh();
+                            } else {
+                              setPasswordError(true);
+                            }
                           });
                         }}
-                        className="flex items-baseline gap-1"
+                        animate={passwordError && !shouldReduceMotion
+                          ? { x: [0, -8, 8, -6, 6, -4, 4, 0] }
+                          : { x: 0 }}
+                        transition={{ duration: 0.4, ease: 'easeInOut' }}
                         style={{
                           fontFamily: 'var(--font-lector)',
                           letterSpacing: 'var(--tracking-body)',
                           width: '14rem',
                         }}
                       >
-                        <input
-                          type="password"
-                          value={passwordValue}
-                          onChange={(e) => setPasswordValue(e.target.value)}
-                          placeholder="Enter password"
-                          disabled={isPending}
-                          autoComplete="current-password"
-                          className="flex-1 min-w-0 bg-transparent border-none p-0 outline-none placeholder:text-[var(--color-metadata)]"
-                          style={{
-                            fontSize: '15px',
-                            lineHeight: 'var(--leading-body)',
-                            color: 'var(--color-content)',
-                          }}
-                          aria-label="Case study password"
-                        />
-                        <span
-                          className="transition-colors duration-[var(--duration-default)]"
-                          style={{
-                            color: passwordValue.length > 0 ? 'var(--color-interactive)' : 'var(--color-metadata)',
-                          }}
-                          aria-hidden
-                        >
-                          →
-                        </span>
-                      </form>
+                        <div className="flex items-baseline gap-1">
+                          <input
+                            type="password"
+                            value={passwordValue}
+                            onChange={(e) => {
+                              setPasswordValue(e.target.value);
+                              if (passwordError) setPasswordError(false);
+                            }}
+                            placeholder="Enter password"
+                            disabled={isPending}
+                            autoComplete="current-password"
+                            className="flex-1 min-w-0 bg-transparent border-none p-0 outline-none placeholder:text-[var(--color-metadata)]"
+                            style={{
+                              fontSize: '15px',
+                              lineHeight: 'var(--leading-body)',
+                              color: 'var(--color-content)',
+                            }}
+                            aria-label="Case study password"
+                          />
+                          <span
+                            aria-hidden
+                            style={{
+                              color: passwordValue.length > 0 && !isPending
+                                ? 'var(--color-interactive)'
+                                : 'var(--color-metadata)',
+                              opacity: isPending ? 0.4 : 1,
+                              transition: 'color 150ms ease, opacity 150ms ease',
+                            }}
+                          >
+                            →
+                          </span>
+                        </div>
+                        <AnimatePresence>
+                          {passwordError && (
+                            <motion.span
+                              initial={{ opacity: 0 }}
+                              animate={{ opacity: 1 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.15 }}
+                              style={{
+                                display: 'block',
+                                marginTop: '4px',
+                                fontSize: '13px',
+                                color: 'var(--color-metadata)',
+                              }}
+                            >
+                              Incorrect
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
+                      </motion.form>
                     </div>
                   </>
                 )}
@@ -362,7 +397,22 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
 
               {/* Body markdown (gated when protected and not unlocked) */}
               <div id="case-study-body">
-                {showBody ? <CaseStudyBody caseStudy={caseStudy} /> : null}
+                {!caseStudy.isProtected ? (
+                  <CaseStudyBody caseStudy={caseStudy} />
+                ) : (
+                  <AnimatePresence initial={false}>
+                    {showBody && (
+                      <motion.div
+                        key="body"
+                        initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.7, ease: EASE }}
+                      >
+                        <CaseStudyBody caseStudy={caseStudy} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                )}
               </div>
             </div>
           </motion.div>
@@ -453,8 +503,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                     ) : null}
                     <Link
                       href={`/work/${nextCaseStudy.slug}`}
-                      className="inline-block mt-[var(--space-2)] text-interactive transition-opacity duration-[var(--duration-default)] hover:opacity-70"
-                      style={{ color: 'var(--color-interactive)' }}
+                      className="inline-block mt-[var(--space-2)]"
                     >
                       View next case study →
                     </Link>

@@ -22,7 +22,7 @@ export function EndTeaser({ nextTitle, nextSlug, vimeoId }: EndTeaserProps) {
         </p>
         <Link
           href={`/work/${nextSlug}`}
-          className="text-interactive text-base leading-[var(--leading-body)] hover:opacity-70 transition-opacity duration-[var(--duration-default)]"
+          className="text-black text-base leading-[var(--leading-body)] hover:text-[#8B6B5A] transition-colors duration-150"
         >
           View {nextTitle} →
         </Link>

@@ -78,7 +78,7 @@ export default function Colophon() {
             fontSize: '15px',
             letterSpacing: '-0.01em',
             lineHeight: '1.4',
-            color: '#000',
+            color: 'var(--color-content)',
             opacity: 0,
             visibility: 'hidden',
           }}
@@ -102,52 +102,63 @@ export default function Colophon() {
           {/* Bio — paragraphs staggered */}
           <div className="flex flex-col" style={{ maxWidth: '520px', gap: '18px', marginBottom: '52px' }}>
             <motion.p {...fadeInPlace(0.22, { duration: 0.8, scaleFrom: 0.985 })}>
-              I am in my final semester studying Computer Science and Fine Arts at Yale and led the
-              university&apos;s design community &amp; studio, forming &amp; overseeing the largest
-              ever designer cohort in{' '}
-              <a
-                href="https://designatyale.com"
-                className="transition-colors duration-200 hover:text-[#8B6B5A]"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Design at Yale
-              </a>
-              &apos;s history.
+              A year ago, I stopped looking at design and engineering as separate practices. I&apos;d
+              been studying Computer Science at Yale but kept gravitating towards finding ways to merge
+              code with craft, where the things I built were as beautiful and considered as they were
+              functional. This portfolio marks that pivot: from software engineering into product design
+              and design engineering, combining my artistic background with my technical skills.
             </motion.p>
             <motion.p {...fadeInPlace(0.3, { duration: 0.8, scaleFrom: 0.985 })}>
-              I&apos;ve previously interned as a designer and engineer at companies including{' '}
+              Since then, I&apos;ve designed at{' '}
               <a
                 href="https://kensho.com"
-                className="transition-colors duration-200 hover:text-[#8B6B5A]"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="text-black transition-colors duration-150 hover:text-[#8B6B5A]"
               >
                 Kensho
               </a>
               ,{' '}
               <a
                 href="https://spglobal.com"
-                className="transition-colors duration-200 hover:text-[#8B6B5A]"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="text-black transition-colors duration-150 hover:text-[#8B6B5A]"
               >
                 S&amp;P Global
               </a>
               , and{' '}
               <a
                 href="https://fidelity.com"
-                className="transition-colors duration-200 hover:text-[#8B6B5A]"
                 target="_blank"
                 rel="noopener noreferrer"
+                className="text-black transition-colors duration-150 hover:text-[#8B6B5A]"
               >
                 Fidelity Investments
               </a>
-              .
+              , led{' '}
+              <a
+                href="https://designatyale.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-black transition-colors duration-150 hover:text-[#8B6B5A]"
+              >
+                Design at Yale
+              </a>
+              {' '}(Yale&apos;s only undergrad studio) as we grew our largest ever designer cohort,
+              and pushed my personal practice of graphic design, writing, and photography to new
+              levels. This site collects and celebrates all of it.
             </motion.p>
-            <motion.p {...fadeInPlace(0.38, { duration: 0.8, scaleFrom: 0.985 })}>
-              Away from my computer, you&apos;ll probably find me supporting Arsenal, playing
-              pickleball and tennis, taking photos, writing, and listening to R&amp;B.
+            <motion.p
+              {...fadeInPlace(0.36, { duration: 0.7, scaleFrom: 0.99 })}
+              style={{ color: 'var(--color-metadata)' }}
+            >
+              —
+            </motion.p>
+            <motion.p {...fadeInPlace(0.42, { duration: 0.8, scaleFrom: 0.985 })}>
+              Away from my computer, you&apos;ll likely find me supporting Arsenal, watching hours
+              and hours of tennis, playing pickleball and soccer, taking photos, reading for my
+              CS &amp; Art thesis, and listening to R&amp;B and house.
             </motion.p>
           </div>
 
@@ -173,7 +184,7 @@ export default function Colophon() {
             >
               <p>Last updated March 2026</p>
               <p>Type in Lector by Forgotten Shapes</p>
-              <p>Built with Next.js and Cursor</p>
+              <p>Built with Next.js and Claude Code</p>
               <p>Image taken by Nico Prescott, Cynthia Lin, &amp; Mona Chen</p>
             </motion.div>
           </div>
