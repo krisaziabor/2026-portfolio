@@ -73,7 +73,7 @@ export default function Colophon() {
             so the flex layout has resolved before content becomes visible */}
         <div
           ref={contentRef}
-          className="font-[family-name:var(--font-lector)] px-6 pb-12 md:px-[72px] md:pb-20"
+          className="font-[family-name:var(--font-lector)] px-6 pt-8 pb-12 md:pt-0 md:px-[72px] md:pb-20"
           style={{
             fontSize: '15px',
             letterSpacing: '-0.01em',
@@ -156,7 +156,7 @@ export default function Colophon() {
               —
             </motion.p>
             <motion.p {...fadeInPlace(0.42, { duration: 0.8, scaleFrom: 0.985 })}>
-              Away from my computer, you&apos;ll likely find me supporting Arsenal, watching hours
+              <em>Away from my computer</em>, you&apos;ll likely find me supporting Arsenal, watching hours
               and hours of tennis, playing pickleball and soccer, taking photos, reading for my
               CS &amp; Art thesis, and listening to R&amp;B and house.
             </motion.p>

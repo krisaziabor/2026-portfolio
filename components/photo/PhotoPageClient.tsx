@@ -20,6 +20,8 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
   const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
   const stripRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
+  const touchStartX = useRef<number>(0);
+  const swiped = useRef(false);
 
   const shouldReduceMotion = useReducedMotion();
   const total = photos.length;
@@ -117,7 +119,21 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
     }
   }, []);
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    swiped.current = false;
+  }, []);
+
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) < 40) return;
+    swiped.current = true;
+    if (dx < 0) goToNext();
+    else goToPrev();
+  }, [goToNext, goToPrev]);
+
   const handleMainClick = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (swiped.current) { swiped.current = false; return; }
     const rect = mainAreaRef.current?.getBoundingClientRect();
     if (!rect) return;
     if (e.clientX >= rect.left + rect.width / 2) goToNext();
@@ -142,11 +158,13 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
         onMouseEnter={() => setCursorVisible(true)}
         onMouseLeave={() => setCursorVisible(false)}
         onClick={handleMainClick}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Image */}
         <div
           className="flex-1 min-h-0 flex items-end overflow-hidden"
-          style={{ paddingTop: '24px', paddingLeft: '72px', paddingRight: '48px', paddingBottom: '40px' }}
+          style={{ paddingTop: '24px', paddingLeft: 'clamp(16px, 7.5vw, 72px)', paddingRight: 'clamp(16px, 5vw, 48px)', paddingBottom: '100px' }}
         >
           <AnimatePresence mode="wait">
             <motion.img
@@ -173,16 +191,17 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentPhoto.index}
+            className="text-left md:text-right"
             style={{
               position: 'absolute',
               bottom: '54px',
-              right: '72px',
+              left: 'clamp(16px, 7.5vw, 72px)',
+              right: 'clamp(16px, 7.5vw, 72px)',
               fontFamily: 'var(--font-lector)',
               fontSize: '15px',
               letterSpacing: 'var(--tracking-body)',
               lineHeight: 'var(--leading-body)',
               color: 'rgba(232,230,230,0.85)',
-              textAlign: 'right',
               pointerEvents: 'none',
             }}
             initial={shouldReduceMotion ? false : { opacity: 0 }}
@@ -201,11 +220,11 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
       {/* Thumbnail strip — grouped by series, full-width with calculated gaps */}
       <div
         ref={stripRef}
-        className="shrink-0 flex items-center"
+        className="shrink-0 flex items-center overflow-x-auto scrollbar-hide"
         style={{
           height: '72px',
-          paddingLeft: '72px',
-          paddingRight: '72px',
+          paddingLeft: 'clamp(16px, 7.5vw, 72px)',
+          paddingRight: 'clamp(16px, 7.5vw, 72px)',
         }}
       >
         {seriesOrder.map((series, si) => {
