@@ -8,14 +8,14 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: 'Kristopher Aziabor',
-  description: 'Making new things feel familiar and familiar things feel new — Kristopher Aziabor, design engineer.',
+  description: 'Making new things feel familiar and familiar things feel new. Kristopher Aziabor, design engineer.',
   icons: {
     icon: '/favicon.ico',
     apple: '/apple-icon.png',
   },
   openGraph: {
     title: 'Kristopher Aziabor',
-    description: 'Making new things feel familiar and familiar things feel new — Kristopher Aziabor, design engineer.',
+    description: 'Making new things feel familiar and familiar things feel new.Kristopher Aziabor, design engineer.',
     images: [{ url: '/opengraph-image.png' }],
   },
 };
