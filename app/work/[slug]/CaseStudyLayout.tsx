@@ -78,10 +78,12 @@ function HeroMedia({
   media,
   backgroundColor,
   videoAspectRatio = DEFAULT_VIDEO_ASPECT,
+  onImageLoad,
 }: {
   media: CaseStudyHeroMedia;
   backgroundColor: string;
   videoAspectRatio?: number;
+  onImageLoad?: () => void;
 }) {
   if (media.type === 'image') {
     return (
@@ -95,6 +97,7 @@ function HeroMedia({
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, clamp(600px, 62.5%, 1200px)"
+          onLoad={onImageLoad}
         />
       </div>
     );
@@ -128,6 +131,8 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
   const [locallyUnlocked, setLocallyUnlocked] = useState(false);
   const [heroVideoRatio, setHeroVideoRatio] = useState<number>(DEFAULT_VIDEO_ASPECT);
   const [nextVideoRatio, setNextVideoRatio] = useState<number>(DEFAULT_VIDEO_ASPECT);
+  const [heroImageLoaded, setHeroImageLoaded] = useState(false);
+  const [nextHeroImageLoaded, setNextHeroImageLoaded] = useState(false);
   const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
   const hasHero = caseStudy.heroMedia || caseStudy.heroChrome;
@@ -223,6 +228,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                     media={caseStudy.heroMedia}
                     backgroundColor={caseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG}
                     videoAspectRatio={heroVideoRatio}
+                    onImageLoad={caseStudy.heroMedia.type === 'image' ? () => setHeroImageLoaded(true) : undefined}
                   />
                 )}
                 {!caseStudy.heroMedia && caseStudy.heroChrome && (
@@ -232,14 +238,14 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                     aria-hidden
                   />
                 )}
-                {/* Overlay dissolves to reveal the already-loaded hero video */}
+                {/* Overlay: images gate on onLoad, videos use time-based dissolve */}
                 {!shouldReduceMotion && (
                   <motion.div
                     className="absolute inset-0"
-                    style={{ backgroundColor: DEFAULT_HERO_BG, zIndex: 2 }}
+                    style={{ backgroundColor: caseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG, zIndex: 2 }}
                     initial={{ opacity: 1 }}
-                    animate={{ opacity: 0 }}
-                    transition={{ duration: 0.8, ease: EASE, delay: 0.35 }}
+                    animate={{ opacity: caseStudy.heroMedia?.type === 'image' ? (heroImageLoaded ? 0 : 1) : 0 }}
+                    transition={{ duration: 0.8, ease: EASE, delay: caseStudy.heroMedia?.type === 'image' ? 0 : 0.35 }}
                   />
                 )}
               </div>
@@ -372,7 +378,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                         animate={passwordError && !shouldReduceMotion
                           ? { x: [0, -8, 8, -6, 6, -4, 4, 0] }
                           : { x: 0 }}
-                        transition={{ duration: 0.4, ease: 'easeInOut' }}
+                        transition={{ duration: 0.4, ease: 'linear' }}
                         style={{
                           fontFamily: 'var(--font-lector)',
                           letterSpacing: 'var(--tracking-body)',
@@ -471,7 +477,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
               {/* Hero: optional chrome + media */}
               {(nextCaseStudy.heroMedia || nextCaseStudy.heroChrome) && (
                 <div
-                  className="w-full overflow-hidden mb-[var(--space-4)]"
+                  className="relative w-full overflow-hidden mb-[var(--space-4)]"
                 >
                   {nextCaseStudy.heroChrome && (
                     <HeroChromeBar
@@ -484,6 +490,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                       media={nextCaseStudy.heroMedia}
                       backgroundColor={nextCaseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG}
                       videoAspectRatio={nextVideoRatio}
+                      onImageLoad={nextCaseStudy.heroMedia.type === 'image' ? () => setNextHeroImageLoaded(true) : undefined}
                     />
                   )}
                   {!nextCaseStudy.heroMedia && nextCaseStudy.heroChrome && (
@@ -491,6 +498,15 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                       className="w-full"
                       style={{ aspectRatio: '16 / 10' }}
                       aria-hidden
+                    />
+                  )}
+                  {!shouldReduceMotion && (
+                    <motion.div
+                      className="absolute inset-0"
+                      style={{ backgroundColor: nextCaseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG, zIndex: 2 }}
+                      initial={{ opacity: 1 }}
+                      animate={{ opacity: nextCaseStudy.heroMedia?.type === 'image' ? (nextHeroImageLoaded ? 0 : 1) : 0 }}
+                      transition={{ duration: 0.8, ease: EASE, delay: nextCaseStudy.heroMedia?.type === 'image' ? 0 : 0.2 }}
                     />
                   )}
                 </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import Image from 'next/image';
 import { AcademyItem, AcademyContentBlock } from '@/lib/content';
@@ -156,6 +156,9 @@ interface CellProps {
 }
 
 function AcademyCell({ item, originalIdx, delayIdx, opacity, isInGroup, onMouseEnter, shouldReduceMotion }: CellProps) {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const handleImageLoad = useCallback(() => setImageLoaded(true), []);
+
   const mediaBlock = getFirstMediaBlock(item.contentBlocks);
   const href = item.link
     ? (item.link.startsWith('http') ? item.link : `https://${item.link}`)
@@ -171,14 +174,16 @@ function AcademyCell({ item, originalIdx, delayIdx, opacity, isInGroup, onMouseE
             <Image
               src={mediaBlock.src} alt={mediaBlock.alt || item.title}
               width={800} height={600}
-              style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block' }}
+              style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', opacity: imageLoaded ? 1 : 0, transition: 'opacity 400ms ease-out' }}
+              onLoad={handleImageLoad}
             />
           </a>
         ) : (
           <Image
             src={mediaBlock.src} alt={mediaBlock.alt || item.title}
             width={800} height={600}
-            style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block' }}
+            style={{ width: '100%', height: 'auto', maxHeight: '300px', objectFit: 'contain', display: 'block', opacity: imageLoaded ? 1 : 0, transition: 'opacity 400ms ease-out' }}
+            onLoad={handleImageLoad}
           />
         )
       )}
@@ -219,7 +224,7 @@ function AcademyCell({ item, originalIdx, delayIdx, opacity, isInGroup, onMouseE
           // Group cells are borderless — the wrapper provides the card border.
           border: isInGroup ? 'none' : `1px solid ${DIVIDER}`,
           opacity: isInGroup ? 1 : opacity,
-          transition: isInGroup ? undefined : 'opacity 300ms ease-out',
+          transition: isInGroup ? undefined : 'opacity 150ms ease-out',
           backgroundColor: 'white',
           cursor: href ? 'pointer' : undefined,
         }}
@@ -314,7 +319,7 @@ export default function AcademyGrid({ items }: { items: AcademyItem[] }) {
               border: `1px solid ${DIVIDER}`,
               boxShadow: isGroupActive ? 'inset 3px 0 0 var(--color-interactive)' : 'none',
               opacity: groupOpacity,
-              transition: 'opacity 300ms ease-out, box-shadow 300ms ease-out',
+              transition: 'opacity 150ms ease-out, box-shadow 150ms ease-out',
             }}>
               {/* Cells side-by-side; 1px gap + background acts as divider lines */}
               <div className={inner} style={{ gap: '1px', backgroundColor: DIVIDER }}>

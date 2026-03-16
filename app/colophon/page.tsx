@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import SiteHeader from '@/components/navigation/SiteHeader';
@@ -18,6 +18,7 @@ const externalLinks = [
 export default function Colophon() {
   const shouldReduceMotion = useReducedMotion();
   const contentRef = useRef<HTMLDivElement>(null);
+  const [portraitLoaded, setPortraitLoaded] = useState(false);
 
   // Use RAF to guarantee the browser paints opacity:0 before revealing content.
   // useState+useEffect can be batched in React 18 concurrent mode, causing a flash
@@ -166,7 +167,9 @@ export default function Colophon() {
           <div className="flex flex-col md:flex-row md:items-end" style={{ gap: '24px' }}>
             <motion.div
               className="relative w-full md:w-[525px] md:shrink-0"
-              {...fadeInPlace(0.44, { duration: 0.95, scaleFrom: 0.96 })}
+              initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.96 }}
+              animate={shouldReduceMotion ? {} : (portraitLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 })}
+              transition={{ duration: 0.75, ease: EASE, delay: shouldReduceMotion ? 0 : 0.44 }}
             >
               <Image
                 src="/KristopherAziaborPortrait.jpeg"
@@ -174,6 +177,7 @@ export default function Colophon() {
                 width={525}
                 height={700}
                 className="object-cover w-full h-auto"
+                onLoad={() => setPortraitLoaded(true)}
               />
             </motion.div>
 

@@ -26,14 +26,14 @@ export default function SiteHeader() {
         fontSize: '15px',
         letterSpacing: '-0.01em',
         lineHeight: '1.4',
-        transition: 'background-color 300ms ease-in-out, color 300ms ease-in-out',
+        transition: 'background-color 300ms ease-out, color 300ms ease-out',
         color: textColor,
       }}
     >
       <Link
         href="/"
         className="hover:opacity-50 mb-2 sm:mb-0"
-        style={{ color: textColor, transition: 'color 300ms ease-in-out, opacity 200ms ease-out' }}
+        style={{ color: textColor, transition: 'color 300ms ease-out, opacity 200ms ease-out' }}
       >
         Kristopher Aziabor
       </Link>
@@ -48,7 +48,7 @@ export default function SiteHeader() {
               key={link.href}
               href={link.href}
               className="hover:opacity-50"
-              style={{ color: isActive ? activeColor : textColor, transition: 'color 300ms ease-in-out, opacity 200ms ease-out' }}
+              style={{ color: isActive ? activeColor : textColor, transition: 'color 300ms ease-out, opacity 200ms ease-out' }}
             >
               {link.label}
             </Link>

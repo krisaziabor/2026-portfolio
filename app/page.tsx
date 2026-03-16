@@ -38,6 +38,7 @@ function HeroMedia({
   videoScrollPassthrough = false,
   videoActivated = false,
   onVideoActivate,
+  onImageLoad,
 }: {
   media: CaseStudyHeroMedia | CaseStudyLandingMedia;
   backgroundColor: string;
@@ -45,6 +46,7 @@ function HeroMedia({
   videoScrollPassthrough?: boolean;
   videoActivated?: boolean;
   onVideoActivate?: () => void;
+  onImageLoad?: () => void;
 }) {
   if (media.type === 'image') {
     return (
@@ -55,6 +57,7 @@ function HeroMedia({
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, 62.5vw"
+          onLoad={onImageLoad}
         />
       </div>
     );
@@ -99,6 +102,8 @@ export default function Home() {
   const [heroVideoRatios, setHeroVideoRatios] = useState<Record<string, number>>({});
   /** Slugs of case study cards whose video has been clicked (so iframe can receive pointer events and page scrolls by default). */
   const [activatedVideos, setActivatedVideos] = useState<Set<string>>(new Set());
+  /** Slugs of image (non-video) case study cards whose image has finished loading. */
+  const [loadedImageCards, setLoadedImageCards] = useState<Set<string>>(new Set());
 
   // Fetch Vimeo oEmbed for landing card videos (landingMedia ?? heroMedia) so containers match actual dimensions
   useEffect(() => {
@@ -157,7 +162,18 @@ export default function Home() {
           Kris is a design engineer tracing origins, elevating minimalism, and creating traditions of love and exploration.
         </motion.p>
         <motion.p style={{ marginTop: '24px' }} {...fadeUp(0.2)}>
-          CS &amp; Art at Yale, previously Product Design at Kensho &amp; S&amp;P Global
+          CS &amp; Art at{' '}
+          <Link href="https://catalog.yale.edu/ycps/subjects-of-instruction/computing-arts/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
+            Yale
+          </Link>
+          , previously Product Design at{' '}
+          <Link href="https://kensho.com/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
+            Kensho
+          </Link>
+          {' '}&amp;{' '}
+          <Link href="https://www.spglobal.com/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
+            S&amp;P Global
+          </Link>
         </motion.p>
       </div>
 
@@ -194,7 +210,7 @@ export default function Home() {
                 }}
               >
                 <div
-                  className="relative w-full overflow-hidden transition-opacity duration-200 group-hover:opacity-70"
+                  className="relative w-full overflow-hidden transition-opacity duration-200 ease-out group-hover:opacity-70 md:max-h-[calc(100vh-420px)]"
                   style={{
                     aspectRatio: String(cardAspectRatio),
                     backgroundColor: bgColor,
@@ -208,16 +224,17 @@ export default function Home() {
                     videoScrollPassthrough={isVideo}
                     videoActivated={isVideo && activatedVideos.has(study.slug)}
                     onVideoActivate={isVideo ? () => setActivatedVideos((prev) => new Set([...prev, study.slug])) : undefined}
+                    onImageLoad={!isVideo ? () => setLoadedImageCards((prev) => new Set([...prev, study.slug])) : undefined}
                   />
 
-                  {/* Overlay dissolves to reveal the already-loaded video; pointer-events: none so scroll/click pass through */}
+                  {/* Overlay: videos use time-based dissolve; images gate on onLoad so content is never revealed before it's ready */}
                   {!shouldReduceMotion && (
                     <motion.div
                       className="absolute inset-0"
                       style={{ backgroundColor: bgColor, zIndex: 2, pointerEvents: 'none' }}
                       initial={{ opacity: 1 }}
-                      animate={{ opacity: 0 }}
-                      transition={{ duration: 0.7, ease: EASE, delay: overlayDelay }}
+                      animate={{ opacity: isVideo ? 0 : (loadedImageCards.has(study.slug) ? 0 : 1) }}
+                      transition={{ duration: 0.7, ease: EASE, delay: isVideo ? overlayDelay : 0 }}
                     />
                   )}
                 </div>
@@ -229,7 +246,7 @@ export default function Home() {
                   transition={{ duration: 0.6, ease: EASE, delay: overlayDelay + 0.1 }}
                 >
                   <p
-                    className="font-[family-name:var(--font-lector)] group-hover:opacity-50 transition-opacity duration-200"
+                    className="font-[family-name:var(--font-lector)] group-hover:opacity-50 transition-opacity duration-200 ease-out"
                     style={{
                       marginTop: '12px',
                       fontSize: '15px',

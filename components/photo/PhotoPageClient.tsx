@@ -17,11 +17,12 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
   const [captionDimmed, setCaptionDimmed] = useState(false);
   const [captionHovered, setCaptionHovered] = useState(false);
 
+  const [photoLoaded, setPhotoLoaded] = useState(false);
+
   const mainAreaRef = useRef<HTMLDivElement>(null);
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const imgRefs = useRef<(HTMLImageElement | null)[]>([]);
   const stripRef = useRef<HTMLDivElement>(null);
-  const isFirstMount = useRef(true);
   const touchStartX = useRef<number>(0);
   const swiped = useRef(false);
 
@@ -94,6 +95,11 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
   const goToPrev = useCallback(() => {
     setCurrentIndex(prev => Math.max(prev - 1, 0));
   }, []);
+
+  // Reset loaded state when photo changes so the animation re-gates on the new image
+  useEffect(() => {
+    setPhotoLoaded(false);
+  }, [currentPhoto.index]);
 
   // Caption dim: show fully on each new photo, then retreat
   useEffect(() => {
@@ -182,22 +188,28 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
               alt={currentPhoto.title}
               className="block w-auto"
               style={{ maxHeight: '100%', maxWidth: '100%' }}
-              initial={shouldReduceMotion ? false : isFirstMount.current
-                ? { opacity: 0, y: 20, scale: 0.97 }
-                : { opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 16, scale: 0.97 }}
+              animate={
+                shouldReduceMotion
+                  ? {}
+                  : photoLoaded
+                    ? { opacity: 1, y: 0, scale: 1 }
+                    : { opacity: 0, y: 16, scale: 0.97 }
+              }
               exit={shouldReduceMotion ? {} : { opacity: 0, y: -4 }}
-              transition={isFirstMount.current
-                ? { duration: 0.75, ease: [0.19, 1, 0.22, 1] }
-                : { duration: 0.45, ease: [0.19, 1, 0.22, 1] }}
-              onAnimationStart={() => { isFirstMount.current = false; }}
+              transition={{ duration: 0.7, ease: [0.19, 1, 0.22, 1] }}
+              onLoad={() => setPhotoLoaded(true)}
+              ref={(el) => {
+                // Handle cached images: onLoad won't fire if already complete
+                if (el?.complete && el.naturalWidth > 0) setPhotoLoaded(true);
+              }}
               draggable={false}
             />
           </AnimatePresence>
         </div>
 
         {/* Metadata: absolutely positioned to align with image bottom */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode="sync">
           <motion.div
             key={currentPhoto.index}
             className="text-left md:text-right"
@@ -256,7 +268,7 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
                     transition={{
                       duration: 0.5,
                       ease: [0.23, 1, 0.32, 1],
-                      delay: shouldReduceMotion ? 0 : 0.3 + i * 0.03,
+                      delay: shouldReduceMotion ? 0 : Math.min(0.3 + i * 0.03, 0.7),
                     }}
                   >
                     <button
