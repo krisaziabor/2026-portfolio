@@ -530,15 +530,12 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                 >
                   {renderSummaryWithMarkdown(nextCaseStudy.summary)}
                 </h2>
-                {/* Two-column intro + metadata */}
+                {/* Intro, metadata, and link — same grid as case study: stacked on mobile, two columns on lg */}
                 <div
-                  className="grid gap-x-12 gap-y-[var(--space-2)] mb-[var(--space-6)]"
-                  style={{
-                    gridTemplateColumns: '1fr auto',
-                    alignItems: 'start',
-                  }}
+                  className="grid grid-cols-1 lg:grid-cols-[1fr_auto] gap-x-12 gap-y-[var(--space-2)] mb-[var(--space-6)]"
+                  style={{ alignItems: 'start' }}
                 >
-                  <div className="min-w-0" style={{ maxWidth: '75%' }}>
+                  <div className="min-w-0 w-full lg:max-w-[75%]">
                     {(nextCaseStudy.intro ?? '').trim() ? (
                       <div
                         className="text-content"
@@ -564,7 +561,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                   </div>
                   {nextCaseStudy.metadata && nextCaseStudy.metadata.length > 0 ? (
                     <div
-                      className="flex flex-col text-left"
+                      className="flex flex-col text-left order-first lg:order-none"
                       style={{ gap: '0', fontSize: '15px' }}
                     >
                       {nextCaseStudy.metadata.map((item, index) => (
