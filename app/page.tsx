@@ -122,11 +122,11 @@ export default function Home() {
     });
   }, [caseStudies]);
 
-  // When the pointer is over the case-study strip, treat strong vertical wheel input as page scroll
-  // rather than scrolling the horizontal strip. This keeps vertical scroll feeling like "scroll the page".
+  // When the strip is horizontal (lg+), treat strong vertical wheel as page scroll so the strip
+  // doesn't steal it. Below lg the strip is vertical — don't hijack wheel so native scroll stays smooth.
   const handleCaseStudyStripWheel: React.WheelEventHandler<HTMLDivElement> = (event) => {
+    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
     const { deltaX, deltaY } = event;
-    // If vertical intent is stronger than horizontal, scroll the window and block horizontal scrolling.
     if (Math.abs(deltaY) > Math.abs(deltaX)) {
       event.preventDefault();
       window.scrollBy({ top: deltaY, behavior: 'auto' });
