@@ -89,17 +89,14 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
   }, [imageWidths, containerWidth, photos, seriesOrder, total]);
 
   const goToNext = useCallback(() => {
+    setPhotoLoaded(false);
     setCurrentIndex(prev => Math.min(prev + 1, total - 1));
   }, [total]);
 
   const goToPrev = useCallback(() => {
+    setPhotoLoaded(false);
     setCurrentIndex(prev => Math.max(prev - 1, 0));
   }, []);
-
-  // Reset loaded state when photo changes so the animation re-gates on the new image
-  useEffect(() => {
-    setPhotoLoaded(false);
-  }, [currentPhoto.index]);
 
   // Caption dim: show fully on each new photo, then retreat
   useEffect(() => {
@@ -244,7 +241,8 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
         ref={stripRef}
         className="shrink-0 flex items-center overflow-x-auto scrollbar-hide"
         style={{
-          height: '72px',
+          paddingTop: '8px',
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)',
           paddingLeft: 'clamp(16px, 7.5vw, 72px)',
           paddingRight: 'clamp(16px, 7.5vw, 72px)',
         }}
@@ -273,7 +271,7 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
                   >
                     <button
                       ref={el => { thumbRefs.current[i] = el; }}
-                      onClick={e => { e.stopPropagation(); setCurrentIndex(i); }}
+                      onClick={e => { e.stopPropagation(); setPhotoLoaded(false); setCurrentIndex(i); }}
                       className="shrink-0 block"
                       style={{
                         height: `${STRIP_HEIGHT}px`,

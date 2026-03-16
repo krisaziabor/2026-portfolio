@@ -199,20 +199,41 @@ function MainMedia({
   maxWidth,
   maxHeight,
   vimeoMeta,
+  onLoad,
 }: {
   mediaBlock: AcademyContentBlock;
   title: string;
   maxWidth: string;
   maxHeight: string;
   vimeoMeta: Record<string, VimeoMeta>;
+  onLoad?: () => void;
 }) {
+  const imgRef   = useRef<HTMLImageElement>(null);
+  const hasFired = useRef(false);
+
+  const fireOnce = useCallback(() => {
+    if (!hasFired.current) { hasFired.current = true; onLoad?.(); }
+  }, [onLoad]);
+
+  // Cached images are already `.complete` before the onLoad event fires
+  useEffect(() => {
+    if (imgRef.current?.complete) fireOnce();
+  }, [fireOnce]);
+
+  // Non-image types have no intrinsic load event — signal ready immediately
+  useEffect(() => {
+    if (mediaBlock.type !== 'image' && mediaBlock.type !== 'photo') fireOnce();
+  }, [mediaBlock.type, fireOnce]);
+
   if ((mediaBlock.type === 'image' || mediaBlock.type === 'photo') && mediaBlock.src) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
+        ref={imgRef}
         src={mediaBlock.src}
         alt={title}
         draggable={false}
+        onLoad={fireOnce}
         style={{ display: 'block', maxWidth, maxHeight, width: 'auto', height: 'auto' }}
       />
     );
@@ -284,13 +305,15 @@ export default function AcademyIndexLayout({ items }: { items: AcademyItem[] }) 
   const [textHovered, setTextHovered]     = useState(false);
   const [textDimmed, setTextDimmed]       = useState(false);
   const [hoveredThumbGroup, setHoveredThumbGroup] = useState<string | null>(null);
+  const [hasAnimatedOnce, setHasAnimatedOnce]     = useState(false);
+  const [initialMediaReady, setInitialMediaReady] = useState(false);
 
-  const mainAreaRef  = useRef<HTMLDivElement>(null);
-  const stripRef     = useRef<HTMLDivElement>(null);
-  const thumbRefs    = useRef<(HTMLButtonElement | null)[]>([]);
-  const touchStartX  = useRef(0);
-  const swiped       = useRef(false);
-  const isFirstMount = useRef(true);
+  const mainAreaRef        = useRef<HTMLDivElement>(null);
+  const stripRef           = useRef<HTMLDivElement>(null);
+  const thumbRefs          = useRef<(HTMLButtonElement | null)[]>([]);
+  const touchStartX        = useRef(0);
+  const swiped             = useRef(false);
+  const initialLoadedCount = useRef(0);
   const shouldReduceMotion = useReducedMotion();
 
   const total       = items.length;
@@ -435,6 +458,21 @@ export default function AcademyIndexLayout({ items }: { items: AcademyItem[] }) 
     setThumbWidths(prev => ({ ...prev, [idx]: width }));
   }, []);
 
+  // ── Initial media load gating ─────────────────────────────────────────────
+  const initialMediaNeeded = useMemo(() => {
+    const unit = getDisplayUnit(items, 0);
+    return unit.members.filter(({ item }) => getFirstMediaBlock(item.contentBlocks) !== null).length;
+  }, [items]);
+
+  useEffect(() => {
+    if (initialMediaNeeded === 0) setInitialMediaReady(true);
+  }, [initialMediaNeeded]);
+
+  const handleInitialLoad = useCallback(() => {
+    initialLoadedCount.current += 1;
+    if (initialLoadedCount.current >= initialMediaNeeded) setInitialMediaReady(true);
+  }, [initialMediaNeeded]);
+
   if (total === 0) return null;
 
   const canGoNext    = currentUnitIdx < unitStartIndices.length - 1;
@@ -452,7 +490,7 @@ export default function AcademyIndexLayout({ items }: { items: AcademyItem[] }) 
   const MEDIA_GAP  = 24;
 
   return (
-    <div className="h-screen flex flex-col" style={{ backgroundColor: '#F8F8F8' }}>
+    <div className="flex flex-col" style={{ height: '100dvh', backgroundColor: '#F8F8F8' }}>
       <SiteHeader />
 
       <div className="flex-1 min-h-0 flex flex-col">
@@ -464,7 +502,10 @@ export default function AcademyIndexLayout({ items }: { items: AcademyItem[] }) 
           style={{
             cursor: isSmall ? 'default' : 'none',
             position: isSmall ? 'static' : 'relative',
-            overflowY: isSmall ? 'auto' : 'hidden',
+            overflowY: 'hidden',
+            display: isSmall ? 'flex' : undefined,
+            flexDirection: isSmall ? 'column' : undefined,
+            justifyContent: isSmall ? 'center' : undefined,
           }}
           onClick={handleMainClick}
           onMouseMove={handleMouseMove}
@@ -478,25 +519,24 @@ export default function AcademyIndexLayout({ items }: { items: AcademyItem[] }) 
             <AnimatePresence mode="wait">
               <motion.div
                 key={displayUnit.key}
-                style={{ padding: `var(--space-4) ${SIDE_PAD} var(--space-4)` }}
+                style={{ padding: `var(--space-2) ${SIDE_PAD}` }}
                 initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={shouldReduceMotion ? {} : { opacity: 0 }}
                 transition={{ duration: 0.4, ease: EASE }}
-                onAnimationStart={() => { isFirstMount.current = false; }}
               >
-                {/* Media items stacked vertically */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Media items — horizontal row */}
+                <div style={{ display: 'flex', flexDirection: 'row', gap: '8px', alignItems: 'flex-end' }}>
                   {displayUnit.members.map(({ item, position }) => {
                     const mediaBlock = getFirstMediaBlock(item.contentBlocks);
                     if (!mediaBlock) return null;
                     return (
-                      <div key={position}>
+                      <div key={position} style={{ flex: 1, minWidth: 0 }}>
                         <MainMedia
                           mediaBlock={mediaBlock}
                           title={item.title}
                           maxWidth="100%"
-                          maxHeight="55vh"
+                          maxHeight="45dvh"
                           vimeoMeta={vimeoMeta}
                         />
                         {n > 1 && (
@@ -561,11 +601,17 @@ export default function AcademyIndexLayout({ items }: { items: AcademyItem[] }) 
                   <motion.div
                     key={displayUnit.key}
                     style={{ display: 'flex', alignItems: 'flex-end', gap: `${MEDIA_GAP}px` }}
-                    initial={shouldReduceMotion ? false : isFirstMount.current ? { opacity: 0, y: 20 } : { opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={shouldReduceMotion ? false : (hasAnimatedOnce ? { opacity: 0, y: 8 } : { opacity: 0, y: 20 })}
+                    animate={
+                      shouldReduceMotion
+                        ? { opacity: 1, y: 0 }
+                        : (!hasAnimatedOnce && !initialMediaReady)
+                          ? { opacity: 0, y: 20 }
+                          : { opacity: 1, y: 0 }
+                    }
                     exit={shouldReduceMotion ? {} : { opacity: 0, y: -4 }}
-                    transition={isFirstMount.current ? { duration: 0.75, ease: EASE } : { duration: 0.45, ease: EASE }}
-                    onAnimationStart={() => { isFirstMount.current = false; }}
+                    transition={hasAnimatedOnce ? { duration: 0.45, ease: EASE } : { duration: 0.75, ease: EASE }}
+                    onAnimationComplete={() => { if (!hasAnimatedOnce) setHasAnimatedOnce(true); }}
                   >
                     {displayUnit.members.map(({ item, position }) => {
                       const mediaBlock = getFirstMediaBlock(item.contentBlocks);
@@ -578,6 +624,7 @@ export default function AcademyIndexLayout({ items }: { items: AcademyItem[] }) 
                             maxWidth={maxItemWidth}
                             maxHeight={maxItemHeight}
                             vimeoMeta={vimeoMeta}
+                            onLoad={!hasAnimatedOnce ? handleInitialLoad : undefined}
                           />
                           {n > 1 && (
                             <span style={{
@@ -656,7 +703,7 @@ export default function AcademyIndexLayout({ items }: { items: AcademyItem[] }) 
           ref={stripRef}
           className="shrink-0 flex items-center overflow-x-auto scrollbar-hide"
           onClick={e => e.stopPropagation()}
-          style={{ height: '72px', paddingLeft: SIDE_PAD, paddingRight: SIDE_PAD }}
+          style={{ paddingTop: '8px', paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)', paddingLeft: SIDE_PAD, paddingRight: SIDE_PAD }}
         >
           {thumbGroups.map((group, gi) => (
             <div

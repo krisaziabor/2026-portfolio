@@ -12,11 +12,12 @@ interface PhotoPageWrapperProps {
 export default function PhotoPageWrapper({ photos }: PhotoPageWrapperProps) {
   return (
     <motion.main
-      className="photo-page h-screen flex flex-col"
+      className="photo-page flex flex-col"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       style={{
+        height: '100dvh',
         backgroundColor: '#141414',
         // Tiny light strip at the very top so Chromium-based
         // browsers sample a light background for toolbar tinting,

@@ -29,7 +29,7 @@
   --color-content: #404040;
   --color-metadata: #6B6B6B;
   --color-interactive: #8B6B5A;
-  --color-background: #FFFFFF;
+  --color-background: #F8F8F8;
 }
 
 html {
@@ -41,7 +41,7 @@ html {
   --color-content: #404040;
   --color-metadata: #6B6B6B;
   --color-interactive: #8B6B5A;
-  --color-background: #FFFFFF;
+  --color-background: #F8F8F8;
 
   /* Typography */
   --font-lector: "Lector FSL", Georgia, serif;
@@ -99,6 +99,11 @@ body {
   a:hover {
     color: var(--color-interactive);
   }
+}
+
+/* Photo page: dark body so overscroll reveals #141414, not #F8F8F8 */
+body:has(.photo-page) {
+  background-color: #141414;
 }
 
 /* Academy page links: allow title text to wrap */
