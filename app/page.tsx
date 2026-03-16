@@ -177,10 +177,10 @@ export default function Home() {
         </motion.p>
       </div>
 
-      {/* Case Studies */}
+      {/* Case Studies — vertical stack until lg (half MacBook ~720px stays stacked) */}
       <div className="px-6 md:px-[72px]" style={{ paddingTop: '24px', paddingBottom: '96px' }}>
         <div
-          className="flex flex-col md:flex-row md:overflow-x-auto scrollbar-hide"
+          className="flex flex-col lg:flex-row lg:overflow-x-auto scrollbar-hide"
           style={{ gap: '40px', scrollSnapType: 'x mandatory' }}
           onWheel={handleCaseStudyStripWheel}
         >
@@ -198,7 +198,7 @@ export default function Home() {
               <MotionLink
                 key={study.slug}
                 href={`/work/${study.slug}`}
-                className="flex flex-col shrink-0 group w-full md:w-[48vw]"
+                className="flex flex-col shrink-0 group w-full lg:w-[48vw]"
                 style={{ scrollSnapAlign: 'start' }}
                 // y + scale only — no opacity, so iframes always paint
                 initial={shouldReduceMotion ? false : { y: 24, scale: 0.96 }}
@@ -210,7 +210,7 @@ export default function Home() {
                 }}
               >
                 <div
-                  className="relative w-full overflow-hidden transition-opacity duration-200 ease-out group-hover:opacity-70 md:max-h-[calc(100vh-420px)]"
+                  className="relative w-full overflow-hidden transition-opacity duration-200 ease-out group-hover:opacity-70 lg:max-h-[calc(100vh-420px)]"
                   style={{
                     aspectRatio: String(cardAspectRatio),
                     backgroundColor: bgColor,
