@@ -45,7 +45,14 @@ export interface AcademyContentBlock {
 
 export interface AcademyItem {
   title: string;
+  date?: string;
   link?: string;
+  /** Human-readable label shown next to ↗ arrow in the metadata panel */
+  linkText?: string;
+  group?: string;
+  groupLabel?: string;
+  /** If true, display independently even when a group field is present */
+  showSolo?: boolean;
   contentBlocks: AcademyContentBlock[];
 }
 
@@ -117,15 +124,19 @@ export function getAllAcademyItems(): AcademyItem[] {
       const { data } = matter(`---\n${section.trim()}\n---`);
 
       // Prefix src paths with /academy/; resolve Vimeo ID for video blocks
-      const contentBlocks = (data.contentBlocks || []).map((block: AcademyContentBlock) => {
+      const contentBlocks = (data.contentBlocks || []).map((block: AcademyContentBlock & { vimeoURL?: string }) => {
         const src = block.src ? `/academy/${block.src}` : undefined;
         const filename = block.src ? path.basename(block.src) : undefined;
+        // vimeoURL in the MDX is the numeric Vimeo ID written directly on the block;
+        // fall back to the filename→ID lookup for legacy local-video entries
         const vimeoId =
-          block.type === 'video' && filename
-            ? getVimeoIdForAcademyVideo(filename)
+          block.type === 'video'
+            ? (block.vimeoURL?.trim() || (filename ? getVimeoIdForAcademyVideo(filename) : undefined))
             : undefined;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { vimeoURL: _vimeoURL, ...rest } = block;
         return {
-          ...block,
+          ...rest,
           src,
           ...(vimeoId && { vimeoId }),
         };
@@ -133,13 +144,19 @@ export function getAllAcademyItems(): AcademyItem[] {
 
       return {
         title: data.title,
+        date: data.date,
         link: data.link,
+        linkText: data.linkText,
+        group: data.group,
+        groupLabel: data.groupLabel,
+        showSolo: data.showSolo || false,
         contentBlocks,
+        _hidden: data.hidden || false,
       };
     });
 
-    // Return items in the order they appear in the file
-    return items;
+    // Return items in the order they appear in the file, excluding hidden ones
+    return items.filter(item => !item._hidden).map(({ _hidden: _, ...rest }) => rest);
   } catch {
     return [];
   }

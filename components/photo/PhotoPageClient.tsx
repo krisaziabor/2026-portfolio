@@ -14,6 +14,8 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
   const [cursorOnRight, setCursorOnRight] = useState(true);
   const [imageWidths, setImageWidths] = useState<Record<number, number>>({});
   const [containerWidth, setContainerWidth] = useState(0);
+  const [captionDimmed, setCaptionDimmed] = useState(false);
+  const [captionHovered, setCaptionHovered] = useState(false);
 
   const mainAreaRef = useRef<HTMLDivElement>(null);
   const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
@@ -92,6 +94,13 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
   const goToPrev = useCallback(() => {
     setCurrentIndex(prev => Math.max(prev - 1, 0));
   }, []);
+
+  // Caption dim: show fully on each new photo, then retreat
+  useEffect(() => {
+    setCaptionDimmed(false);
+    const t = setTimeout(() => setCaptionDimmed(true), 1800);
+    return () => clearTimeout(t);
+  }, [currentIndex]);
 
   // Auto-scroll active thumbnail into view
   useEffect(() => {
@@ -202,14 +211,15 @@ export default function PhotoPageClient({ photos }: { photos: Photo[] }) {
               letterSpacing: 'var(--tracking-body)',
               lineHeight: 'var(--leading-body)',
               color: 'rgba(232,230,230,0.85)',
-              pointerEvents: 'none',
+              cursor: 'default',
             }}
             initial={shouldReduceMotion ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
+            animate={{ opacity: shouldReduceMotion ? 1 : (captionHovered ? 1 : (captionDimmed ? 0.18 : 1)) }}
             exit={shouldReduceMotion ? {} : { opacity: 0 }}
-            transition={isFirstMount.current
-              ? { duration: 0.65, ease: [0.19, 1, 0.22, 1], delay: 0.1 }
-              : { duration: 0.4, ease: [0.19, 1, 0.22, 1], delay: 0.05 }}
+            transition={captionHovered ? { duration: 0.2, ease: 'easeOut' } : { duration: 0.6, ease: 'easeOut' }}
+            onMouseEnter={() => setCaptionHovered(true)}
+            onMouseLeave={() => setCaptionHovered(false)}
+            onClick={e => e.stopPropagation()}
           >
             {currentPhoto.title}
             {currentPhoto.year ? `, ${currentPhoto.year}` : ''}

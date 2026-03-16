@@ -11,8 +11,8 @@ const DURATION = 0.85;
 
 const externalLinks = [
   { label: 'LinkedIn', href: 'https://linkedin.com/in/krisaziabor' },
-  { label: 'Email', href: 'mailto:kris.aziabor@yale.edu' },
-  { label: 'Resume', href: '/resume.pdf' },
+  { label: 'Email', href: 'mailto:hello@krisaziabor.com' },
+  { label: 'Resume', href: '/KristopherAziabor_March2026_Resume.pdf' },
 ];
 
 export default function Colophon() {

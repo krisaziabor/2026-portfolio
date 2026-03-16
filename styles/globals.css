@@ -110,3 +110,10 @@ body {
 .photo-page a:hover {
   color: inherit;
 }
+
+/* Academy grid: group cards always show the terracotta left indicator on touch devices */
+@media (hover: none) {
+  .academy-group-wrapper {
+    box-shadow: inset 3px 0 0 var(--color-interactive) !important;
+  }
+}

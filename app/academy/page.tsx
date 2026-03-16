@@ -1,8 +1,7 @@
 import { getAllAcademyItems } from '@/lib/content';
-import AcademyPageClient from '@/components/academy/AcademyPageClient';
+import AcademyIndexLayout from '@/components/academy/AcademyIndexLayout';
 
 export default function Academy() {
   const items = getAllAcademyItems();
-
-  return <AcademyPageClient items={items} />;
+  return <AcademyIndexLayout items={items} />;
 }
