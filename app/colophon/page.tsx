@@ -163,10 +163,10 @@ export default function Colophon() {
             </motion.p>
           </div>
 
-          {/* Portrait + metadata */}
-          <div className="flex flex-col md:flex-row md:items-end" style={{ gap: '24px' }}>
+          {/* Portrait + metadata — stacked on small/medium; side-by-side only at xl */}
+          <div className="flex flex-col xl:flex-row xl:items-end" style={{ gap: '24px' }}>
             <motion.div
-              className="relative w-full md:w-[525px] md:shrink-0"
+              className="relative w-full xl:w-[525px] xl:shrink-0"
               initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.96 }}
               animate={shouldReduceMotion ? {} : (portraitLoaded ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.96 })}
               transition={{ duration: 0.75, ease: EASE, delay: shouldReduceMotion ? 0 : 0.44 }}
