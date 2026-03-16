@@ -1,19 +1,19 @@
-import type { CaseStudy } from '@/types/case-study';
+import type { CaseStudy } from "@/types/case-study";
 
-const base = '/work/kensho';
+const base = "/work/kensho";
 
 export const kensho: CaseStudy = {
-  slug: 'kensho',
-  title: 'Kensho',
-  client: 'Kensho',
+  slug: "kensho",
+  title: "Kensho",
+  client: "Kensho",
   isProtected: true,
   sequence: 1,
-  summary: 'Substantiating AI at *Kensho* & *S&P Global*',
+  summary: "Substantiating AI at *Kensho* & *S&P Global*",
   tags: [],
   metadata: [
-    { key: 'Timeline', value: 'September to December 2025' },
-    { key: 'Company', value: 'Kensho, S&P Global' },
-    { key: 'Role', value: 'Product Design Intern (part-time)' },
+    { key: "Timeline", value: "September to December 2025" },
+    { key: "Company", value: "Kensho, S&P Global" },
+    { key: "Role", value: "Product Design Intern (part-time)" },
   ],
   intro: `
 AI-generated financial reports are only useful if users trust what's in them. At Kensho, I designed citation and data attribution systems across two financial products that let users trace every claim and calculation back to its source.
@@ -21,18 +21,23 @@ AI-generated financial reports are only useful if users trust what's in them. At
   passwordIntro: `
   This case study reveals designs for Kensho products that the company wishes to keep private. To respect their policy, my designs are password-protected. Please [contact me](mailto:kris.aziabor@yale.edu) if you would like access.
   `,
-  heroBackgroundColor: '#ECEEEE',
+  heroBackgroundColor: "#ECEEEE",
   heroMedia: {
-    type: 'video',
-    vimeoId: '1173131650',
+    type: "video",
+    vimeoId: "1173131650",
     alt: "Kensho's cover image",
   },
-  skipToSection: 'designs',
-  nextCaseStudySlug: 'sea12',
-  teaserVimeoId: '1160310782',
+  landingMedia: {
+    type: "video",
+    vimeoId: "1173121514",
+    alt: "Kensho's cover image",
+  },
+  skipToSection: "designs",
+  nextCaseStudySlug: "sea12",
+  teaserVimeoId: "1160310782",
   body: [
     {
-      type: 'markdown',
+      type: "markdown",
       content: `
 ## Context
 
@@ -44,15 +49,15 @@ AI-generated financial reports are only useful if users trust what's in them. At
       `.trim(),
     },
     {
-      type: 'markdown',
+      type: "markdown",
       content: `A tool for research analysts, *Project X* is a financial report writing tool that allows users to input sources and collaborate on the working process with Agent X, a powerful AI agent backed with resources such as S&P data. Agent X can write report text, bring in outside sources, and cite text from them.`,
     },
     {
-      type: 'question',
+      type: "question",
       content: `How can users quickly and thoroughly verify that Agent X's content is accurate?`,
     },
     {
-      type: 'markdown',
+      type: "markdown",
       content: `
 ### Grounding POC
 
@@ -62,15 +67,15 @@ AI-generated financial reports are only useful if users trust what's in them. At
       `.trim(),
     },
     {
-      type: 'markdown',
+      type: "markdown",
       content: `Grounding's interface surfaces a lot of information: financial figures, data tables, derived calculations. At the start of my internship, none of it had a clear trail back to where it came from. The density of the output actually made the trust problem worse: the more data users saw, the harder it was to know which numbers came directly from a source and which the agent had calculated on its own.`,
     },
     {
-      type: 'question',
+      type: "question",
       content: `How do we present users with the power to trace everything back to its source without it becoming overbearing?`,
     },
     {
-      type: 'markdown',
+      type: "markdown",
       content: `
 ## Design Process
 
@@ -121,9 +126,13 @@ The redesigned source panel surfaces what users previously had to dig for: sourc
 
 Source badges let users distinguish between database pulls, news articles, and uploaded documents. No clicking required.
 
-![The expanded source visibility inside Grounding POC](/vimeo/1172448470?showVideoSettings=true&fullBleedBackgroundColor=%004253)
+![The past status bar in Grounding POC](${base}/Grounding-TableBefore.png)
 
-*One more thing I was still cooking on*: In the current interface, all retrieved data loads behind a single collapsed bar; users see nothing until the process is complete. I wanted to open that up: show each query as it happens, let users watch the agent work step by step. A table for Nvidia's debt, then Apple's, then Microsoft's; each one appearing in sequence rather than all at once. The transparency is the point; even if users never expand a single table, knowing the process is visible changes how the output feels.
+*One more thing I was still cooking on*: In the current interface, all retrieved data loads behind a single collapsed bar; users see nothing until the process is complete. 
+
+I wanted to open that up: show each query as it happens, let users watch the agent work step by step. A table for Nvidia's debt, then Apple's, then Microsoft's; each one appearing in sequence rather than all at once. The transparency is the point; even if users never expand a single table, knowing the process is visible changes how the output feels.
+
+![The expanded source visibility inside Grounding POC](/vimeo/1172448470?showVideoSettings=true&fullBleedBackgroundColor=%004253)
 
 ## Reflections
 

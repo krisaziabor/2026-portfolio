@@ -26,8 +26,14 @@ From April to June, I led a team of 3 designers to design and build their new vi
     hasAudio: false,
     alt: "Sea12's new landing page",
   },
+  landingMedia: {
+    type: 'video',
+    vimeoId: '1173956304',
+    hasAudio: false,
+    alt: "Sea12's new landing page",
+  },
   skipToSection: 'designs',
-  nextCaseStudySlug: 'constellating',
+  nextCaseStudySlug: 'linkus',
   body: [
     {
       type: 'markdown',

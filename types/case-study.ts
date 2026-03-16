@@ -58,6 +58,11 @@ export type CaseStudyHeroMedia =
       posterTime?: number;
     };
 
+/** Optional media for the case study card on the landing page. Independent from hero (can be image or Vimeo). */
+export type CaseStudyLandingMedia =
+  | { type: 'image'; src: string; alt: string }
+  | { type: 'video'; alt: string; vimeoId: string; hasAudio?: boolean; posterTime?: number };
+
 /** Optional browser-window chrome shown above hero media (e.g. site name + nav). */
 export interface CaseStudyHeroChrome {
   siteName: string;
@@ -141,6 +146,8 @@ export interface CaseStudy {
   passwordIntro?: string;
   /** Hero media block at top (image or video in dark container). */
   heroMedia?: CaseStudyHeroMedia;
+  /** Media for the case study card on the landing page (image or Vimeo). If omitted, heroMedia is used. */
+  landingMedia?: CaseStudyLandingMedia;
   /** Background color for hero/cover area (e.g. #1a1a1a). Defaults to dark gray if omitted. */
   heroBackgroundColor?: string;
   /** Optional browser-style bar above hero media. */

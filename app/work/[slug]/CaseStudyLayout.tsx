@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -72,16 +72,28 @@ function HeroChromeBar({ siteName, navItems }: CaseStudyHeroChrome) {
 }
 
 const DEFAULT_HERO_BG = '#1a1a1a';
+const DEFAULT_VIDEO_ASPECT = 16 / 9;
 
-function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; backgroundColor: string }) {
+function HeroMedia({
+  media,
+  backgroundColor,
+  videoAspectRatio = DEFAULT_VIDEO_ASPECT,
+}: {
+  media: CaseStudyHeroMedia;
+  backgroundColor: string;
+  videoAspectRatio?: number;
+}) {
   if (media.type === 'image') {
     return (
-      <div className="relative w-full" style={{ aspectRatio: '16 / 10', backgroundColor }}>
+      <div
+        className="relative w-full overflow-hidden"
+        style={{ aspectRatio: '16 / 10', backgroundColor }}
+      >
         <Image
           src={media.src}
           alt={media.alt}
           fill
-          className="object-contain"
+          className="object-cover"
           sizes="(max-width: 768px) 100vw, clamp(600px, 62.5%, 1200px)"
         />
       </div>
@@ -95,11 +107,11 @@ function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; back
     });
     const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
     return (
-      <div className="relative w-full" style={{ aspectRatio: '16 / 10', backgroundColor }}>
+      <div className="relative w-full overflow-hidden" style={{ aspectRatio: String(videoAspectRatio) }}>
         <iframe
           src={embedUrl}
           title={media.alt}
-          className="absolute inset-0 w-full h-full"
+          className="absolute inset-0 w-full h-full border-0"
           allow={hasAudio ? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope' : 'autoplay; fullscreen; picture-in-picture'}
           allowFullScreen
         />
@@ -114,9 +126,39 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
   const [isPending, startTransition] = useTransition();
   const [passwordError, setPasswordError] = useState(false);
   const [locallyUnlocked, setLocallyUnlocked] = useState(false);
+  const [heroVideoRatio, setHeroVideoRatio] = useState<number>(DEFAULT_VIDEO_ASPECT);
+  const [nextVideoRatio, setNextVideoRatio] = useState<number>(DEFAULT_VIDEO_ASPECT);
   const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
   const hasHero = caseStudy.heroMedia || caseStudy.heroChrome;
+
+  // Fetch Vimeo oEmbed so hero video container matches actual video dimensions (no letterboxing)
+  const heroVimeoId = caseStudy.heroMedia?.type === 'video' ? caseStudy.heroMedia.vimeoId : null;
+  const nextVimeoId = nextCaseStudy?.heroMedia?.type === 'video' ? nextCaseStudy.heroMedia.vimeoId : null;
+
+  useEffect(() => {
+    if (!heroVimeoId) return;
+    fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${heroVimeoId}&width=400`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.width && data.height) {
+          setHeroVideoRatio(data.width / data.height);
+        }
+      })
+      .catch(() => {});
+  }, [heroVimeoId]);
+
+  useEffect(() => {
+    if (!nextVimeoId) return;
+    fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${nextVimeoId}&width=400`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.width && data.height) {
+          setNextVideoRatio(data.width / data.height);
+        }
+      })
+      .catch(() => {});
+  }, [nextVimeoId]);
   const introText = caseStudy.intro ?? '';
   const skipLabel = caseStudy.skipToSection ? `Skip to ${caseStudy.skipToSection} →` : 'Skip to content →';
   const skipTargetId = caseStudy.skipToSection
@@ -169,9 +211,6 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
             {hasHero && (
               <div
                 className="relative w-full overflow-hidden mb-[var(--space-4)]"
-                style={{
-                  backgroundColor: caseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG,
-                }}
               >
                 {caseStudy.heroChrome && (
                   <HeroChromeBar
@@ -183,12 +222,13 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                   <HeroMedia
                     media={caseStudy.heroMedia}
                     backgroundColor={caseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG}
+                    videoAspectRatio={heroVideoRatio}
                   />
                 )}
                 {!caseStudy.heroMedia && caseStudy.heroChrome && (
                   <div
                     className="w-full"
-                    style={{ aspectRatio: '16 / 10', backgroundColor: caseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG }}
+                    style={{ aspectRatio: '16 / 10' }}
                     aria-hidden
                   />
                 )}
@@ -196,7 +236,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                 {!shouldReduceMotion && (
                   <motion.div
                     className="absolute inset-0"
-                    style={{ backgroundColor: caseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG, zIndex: 2 }}
+                    style={{ backgroundColor: DEFAULT_HERO_BG, zIndex: 2 }}
                     initial={{ opacity: 1 }}
                     animate={{ opacity: 0 }}
                     transition={{ duration: 0.8, ease: EASE, delay: 0.35 }}
@@ -432,9 +472,6 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
               {(nextCaseStudy.heroMedia || nextCaseStudy.heroChrome) && (
                 <div
                   className="w-full overflow-hidden mb-[var(--space-4)]"
-                  style={{
-                    backgroundColor: nextCaseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG,
-                  }}
                 >
                   {nextCaseStudy.heroChrome && (
                     <HeroChromeBar
@@ -446,12 +483,13 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                     <HeroMedia
                       media={nextCaseStudy.heroMedia}
                       backgroundColor={nextCaseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG}
+                      videoAspectRatio={nextVideoRatio}
                     />
                   )}
                   {!nextCaseStudy.heroMedia && nextCaseStudy.heroChrome && (
                     <div
                       className="w-full"
-                      style={{ aspectRatio: '16 / 10', backgroundColor: nextCaseStudy.heroBackgroundColor ?? DEFAULT_HERO_BG }}
+                      style={{ aspectRatio: '16 / 10' }}
                       aria-hidden
                     />
                   )}

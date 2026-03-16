@@ -179,7 +179,7 @@ export default function Colophon() {
 
             <motion.div
               className="flex flex-col"
-              style={{ color: '#6B6B6B', gap: '0px', paddingBottom: '4px' }}
+              style={{ color: '#6B6B6B', gap: '0px' }}
               {...fadeInPlace(0.52)}
             >
               <p>Last updated March 2026</p>

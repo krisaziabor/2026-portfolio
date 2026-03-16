@@ -1,11 +1,14 @@
 'use client';
 
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
 import SiteHeader from '@/components/navigation/SiteHeader';
 import { caseStudies } from '@/content/case-studies';
-import type { CaseStudyHeroMedia } from '@/types/case-study';
+import type { CaseStudyHeroMedia, CaseStudyLandingMedia } from '@/types/case-study';
+
+const DEFAULT_VIDEO_ASPECT = 4 / 3;
 
 const MotionLink = motion.create(Link);
 
@@ -27,7 +30,22 @@ function renderWithMarkdown(text: string): React.ReactNode {
   return parts.length > 0 ? parts : text;
 }
 
-function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; backgroundColor: string }) {
+function HeroMedia({
+  media,
+  backgroundColor,
+  videoAspectRatio = DEFAULT_VIDEO_ASPECT,
+  /** When true and media is video, iframe uses pointer-events: none and a click overlay so the page scrolls; click activates the video. */
+  videoScrollPassthrough = false,
+  videoActivated = false,
+  onVideoActivate,
+}: {
+  media: CaseStudyHeroMedia | CaseStudyLandingMedia;
+  backgroundColor: string;
+  videoAspectRatio?: number;
+  videoScrollPassthrough?: boolean;
+  videoActivated?: boolean;
+  onVideoActivate?: () => void;
+}) {
   if (media.type === 'image') {
     return (
       <div className="relative w-full h-full" style={{ backgroundColor }}>
@@ -47,15 +65,30 @@ function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; back
       ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1', playsinline: '1' }),
     });
     const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
+    const allowScroll = videoScrollPassthrough && !videoActivated;
     return (
-      <iframe
-        src={embedUrl}
-        title={media.alt}
-        className="absolute inset-0 w-full h-full"
-        style={{ backgroundColor }}
-        allow="autoplay; fullscreen; picture-in-picture"
-        allowFullScreen
-      />
+      <>
+        <iframe
+          src={embedUrl}
+          title={media.alt}
+          className="absolute inset-0 w-full h-full border-0"
+          style={{
+            backgroundColor,
+            pointerEvents: allowScroll ? 'none' : 'auto',
+          }}
+          allow="autoplay; fullscreen; picture-in-picture"
+          allowFullScreen
+        />
+        {allowScroll && onVideoActivate && (
+          <button
+            type="button"
+            className="absolute inset-0 w-full h-full cursor-pointer"
+            style={{ zIndex: 1 }}
+            onClick={onVideoActivate}
+            aria-label="Interact with video"
+          />
+        )}
+      </>
     );
   }
   return null;
@@ -63,6 +96,37 @@ function HeroMedia({ media, backgroundColor }: { media: CaseStudyHeroMedia; back
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
+  const [heroVideoRatios, setHeroVideoRatios] = useState<Record<string, number>>({});
+  /** Slugs of case study cards whose video has been clicked (so iframe can receive pointer events and page scrolls by default). */
+  const [activatedVideos, setActivatedVideos] = useState<Set<string>>(new Set());
+
+  // Fetch Vimeo oEmbed for landing card videos (landingMedia ?? heroMedia) so containers match actual dimensions
+  useEffect(() => {
+    caseStudies.forEach((study) => {
+      const media = study.landingMedia ?? study.heroMedia;
+      const vimeoId = media?.type === 'video' ? media.vimeoId : null;
+      if (!vimeoId || heroVideoRatios[vimeoId]) return;
+      fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${vimeoId}&width=400`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.width && data.height) {
+            setHeroVideoRatios((prev) => ({ ...prev, [vimeoId]: data.width / data.height }));
+          }
+        })
+        .catch(() => {});
+    });
+  }, [caseStudies]);
+
+  // When the pointer is over the case-study strip, treat strong vertical wheel input as page scroll
+  // rather than scrolling the horizontal strip. This keeps vertical scroll feeling like "scroll the page".
+  const handleCaseStudyStripWheel: React.WheelEventHandler<HTMLDivElement> = (event) => {
+    const { deltaX, deltaY } = event;
+    // If vertical intent is stronger than horizontal, scroll the window and block horizontal scrolling.
+    if (Math.abs(deltaY) > Math.abs(deltaX)) {
+      event.preventDefault();
+      window.scrollBy({ top: deltaY, behavior: 'auto' });
+    }
+  };
 
   const fadeUp = (delay: number) => ({
     initial: shouldReduceMotion ? false : { opacity: 0, y: 14 },
@@ -78,7 +142,7 @@ export default function Home() {
       <div
         className="font-[family-name:var(--font-lector)] px-6 md:px-[72px]"
         style={{
-          paddingTop: '72px',
+          paddingTop: '48px',
           paddingBottom: '32px',
           maxWidth: '600px',
           fontSize: '15px',
@@ -101,17 +165,24 @@ export default function Home() {
       <div className="px-6 md:px-[72px]" style={{ paddingTop: '24px', paddingBottom: '96px' }}>
         <div
           className="flex flex-col md:flex-row md:overflow-x-auto scrollbar-hide"
-          style={{ gap: '32px', scrollSnapType: 'x mandatory' }}
+          style={{ gap: '40px', scrollSnapType: 'x mandatory' }}
+          onWheel={handleCaseStudyStripWheel}
         >
           {caseStudies.map((study, i) => {
+            const media = study.landingMedia ?? study.heroMedia;
             const overlayDelay = shouldReduceMotion ? 0 : 0.40 + i * 0.13;
             const bgColor = study.heroBackgroundColor ?? '#1a1a1a';
+            const isVideo = media?.type === 'video';
+            const vimeoId = isVideo ? media.vimeoId : null;
+            const cardAspectRatio = isVideo && vimeoId
+              ? (heroVideoRatios[vimeoId] ?? DEFAULT_VIDEO_ASPECT)
+              : DEFAULT_VIDEO_ASPECT;
 
             return (
               <MotionLink
                 key={study.slug}
                 href={`/work/${study.slug}`}
-                className="flex flex-col shrink-0 group w-full md:w-[50.625vw]"
+                className="flex flex-col shrink-0 group w-full md:w-[48vw]"
                 style={{ scrollSnapAlign: 'start' }}
                 // y + scale only — no opacity, so iframes always paint
                 initial={shouldReduceMotion ? false : { y: 24, scale: 0.96 }}
@@ -123,20 +194,27 @@ export default function Home() {
                 }}
               >
                 <div
-                  className="relative w-full overflow-hidden"
+                  className="relative w-full overflow-hidden transition-opacity duration-200 group-hover:opacity-70"
                   style={{
-                    aspectRatio: '3 / 2',
+                    aspectRatio: String(cardAspectRatio),
                     backgroundColor: bgColor,
                     borderRadius: '2px',
                   }}
                 >
-                  <HeroMedia media={study.heroMedia!} backgroundColor={bgColor} />
+                  <HeroMedia
+                    media={media!}
+                    backgroundColor={bgColor}
+                    videoAspectRatio={isVideo && vimeoId ? (heroVideoRatios[vimeoId] ?? DEFAULT_VIDEO_ASPECT) : undefined}
+                    videoScrollPassthrough={isVideo}
+                    videoActivated={isVideo && activatedVideos.has(study.slug)}
+                    onVideoActivate={isVideo ? () => setActivatedVideos((prev) => new Set([...prev, study.slug])) : undefined}
+                  />
 
-                  {/* Overlay dissolves to reveal the already-loaded video */}
+                  {/* Overlay dissolves to reveal the already-loaded video; pointer-events: none so scroll/click pass through */}
                   {!shouldReduceMotion && (
                     <motion.div
                       className="absolute inset-0"
-                      style={{ backgroundColor: bgColor, zIndex: 2 }}
+                      style={{ backgroundColor: bgColor, zIndex: 2, pointerEvents: 'none' }}
                       initial={{ opacity: 1 }}
                       animate={{ opacity: 0 }}
                       transition={{ duration: 0.7, ease: EASE, delay: overlayDelay }}
