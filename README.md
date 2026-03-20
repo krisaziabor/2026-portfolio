@@ -5,6 +5,7 @@ Personal portfolio site for [krisaziabor.com](https://krisaziabor.com). A "machi
 ## Stack
 
 - **Next.js** (App Router, Turbopack)
+- **Vercel Analytics** (`@vercel/analytics`) — enable **Web Analytics** for the project in the Vercel dashboard
 - **React 19**
 - **TypeScript** (strict)
 - **Tailwind CSS v4** (CSS-first, no JS config)

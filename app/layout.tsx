@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import '@/styles/globals.css';
 import { AgentationWrapper } from '@/components/AgentationWrapper';
 import { AcademyImagePreloader } from '@/components/AcademyImagePreloader';
@@ -51,6 +52,7 @@ export default function RootLayout({
         {children}
         <AcademyImagePreloader srcs={firstUnitSrcs} />
         <AgentationWrapper />
+        <Analytics />
       </body>
     </html>
   );
