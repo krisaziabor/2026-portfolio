@@ -25,4 +25,11 @@ export function isUnlocked(slug: string, cookieValue: string): boolean {
   return slugs.includes(slug);
 }
 
+/** Deduplicates and serializes unlocked slugs for cookie storage. */
+export function mergeUnlockedSlugs(cookieValue: string, nextSlugs: string[]): string {
+  const existing = cookieValue.split(',').map((s) => s.trim()).filter(Boolean);
+  const merged = new Set([...existing, ...nextSlugs.filter(Boolean)]);
+  return Array.from(merged).join(',');
+}
+
 export { COOKIE_NAME, COOKIE_PATH };

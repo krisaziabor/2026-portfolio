@@ -1,7 +1,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { getPasswordForSlug, COOKIE_NAME, COOKIE_PATH } from '@/lib/case-study-auth';
+import { getPasswordForSlug, COOKIE_NAME, COOKIE_PATH, mergeUnlockedSlugs } from '@/lib/case-study-auth';
 
 export async function verifyCaseStudyPassword(slug: string, submittedPassword: string): Promise<{ success: boolean }> {
   const expected = getPasswordForSlug(slug);
@@ -10,10 +10,9 @@ export async function verifyCaseStudyPassword(slug: string, submittedPassword: s
 
   const cookieStore = await cookies();
   const current = cookieStore.get(COOKIE_NAME)?.value ?? '';
-  const slugs = current.split(',').map((s) => s.trim()).filter(Boolean);
-  if (!slugs.includes(slug)) {
-    slugs.push(slug);
-    cookieStore.set(COOKIE_NAME, slugs.join(','), {
+  const nextValue = mergeUnlockedSlugs(current, [slug]);
+  if (nextValue !== current) {
+    cookieStore.set(COOKIE_NAME, nextValue, {
       path: COOKIE_PATH,
       httpOnly: true,
       sameSite: 'lax',

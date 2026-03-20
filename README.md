@@ -32,6 +32,7 @@ npm run lint     # ESLint
 ## Content
 
 - **Case studies** — TypeScript modules in `content/case-studies/`. Password-protected studies use `CASE_STUDY_PASSWORD_<SLUG>` env vars (see `.env.local`).
+- **Recruiter access link** — Set `RECRUITER_ACCESS_TOKEN` in `.env.local`, then share `https://krisaziabor.com/access/<token>`. Visiting that URL unlocks all password-protected case studies for 30 days via httpOnly cookie, then redirects home (optional `?next=/work/<slug>` redirect supported).
 - **Academy items** — MDX files in `content/academy/`.
 - **Photos** — `content/photos.json`.
 
