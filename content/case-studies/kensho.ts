@@ -19,7 +19,7 @@ export const kensho: CaseStudy = {
 AI-generated financial reports are only useful if users trust what's in them. At Kensho, I designed citation and data attribution systems across two financial products that let users trace every claim and calculation back to its source.
   `,
   passwordIntro: `
-  This case study reveals designs for Kensho products that the company wishes to keep private. To respect their policy, my designs are password-protected. If you are a recruiter, please access the portfolio via the link in my resume. For all other inquiries, please [contact me](mailto:kris.aziabor@yale.edu).
+  This case study reveals designs for Kensho products that the company wishes to keep private. If you are a recruiter, please access the portfolio via the link in my resume.
   `,
   heroBackgroundColor: "#ECEEEE",
   heroMedia: {
