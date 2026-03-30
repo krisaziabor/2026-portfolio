@@ -54,7 +54,7 @@ Using IBM as a central piece of inspiration, we started with low-fidelity wirefr
 
 ![Low-fidelity wireframes exploring varying layouts](${base}/Sea12-2.png)
 
-To best understand what direction Charles & the Sea12 team wanted, we ignored many of the rules of design. We chose color combinations that broke accessibility rules, place visuals on top of text that threatened legibility, and didn't look back.
+To best understand what direction Charles & the Sea12 team wanted, we (temporarily) ignored many of the rules of design. We chose color combinations that broke accessibility rules, placed visuals on top of text that threatened legibility, and didn't look back.
 
 By doing this we were able to get a sense of what extremes they liked and thus, which ones we could tastefully play with later.
 

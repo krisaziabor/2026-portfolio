@@ -42,7 +42,7 @@ AI-generated financial reports are only useful if users trust what's in them. At
 ## Context
 
 *Notes:*
-*This case study contains confidential work I made at Kensho the company wishes to keep private. Please do not distribute or share this case study without permission.*
+*This case study contains confidential work I made at Kensho that the company wishes to keep private. Please do not distribute the password, special work URL, or share this case study without permission.*
 
 *To differentiate between the two products, I will use blue background colors for Project X and gray for Grounding POC.*
 
