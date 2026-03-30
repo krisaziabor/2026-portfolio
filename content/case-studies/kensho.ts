@@ -89,7 +89,7 @@ While the final designs differed across products, I solved the central problems 
 
 ### Citations
 
-![The citation system inside Grounding POC](/vimeo/1172450238?showVideoSettings=true&fullBleedBackgroundColor=%23ECEEEE)
+![The citation system inside Grounding POC](/vimeo/1172450238?showVideoSettings=true&fullBleedBackgroundColor=#ECEEEE)
 
 Grounding POC's citations focus on two different types of ways the agent uses data: direct mentions and summaries/derived calculations. Direct mentions vary from quotes to a series of numbers extracted from a source.
 
@@ -101,17 +101,17 @@ Every citation carries its origin and an excerpt of the data it references: enou
 
 When the agent derives a new value from raw data, the citation lets users reconstruct the math; not just see the answer, but trace how it got there.
 
-![The citation system inside Project X](/vimeo/1172499471?showVideoSettings=true)
+![The citation system inside Project X](/vimeo/1172499471?showVideoSettings=true&fullBleedBackgroundColor=#004A5D)
 
 As for Project X, the citation system is built around the report writing process. Source title previews are replaced with numbers, reminiscent of a conventional footnote system (with one key twist).
 
 When the same source and excerpt appear across multiple sections, they share a citation number. Identifiers, not footnotes; users always know when they're looking at something they've already verified.
 
-![Users can quickly scan all appearances of a citation through the source side panel.](/vimeo/1172513169?showVideoSettings=true&fullBleedBackgroundColor=%23ECEEEE)
+![Users can quickly scan all appearances of a citation through the source side panel.](/vimeo/1172513169?showVideoSettings=true&fullBleedBackgroundColor=#004A5D)
 
 *A design I was still cooking on in my final days*: Grounding's excerpts often trace back to external pages rather than an in-app source view. So verification needs a different mechanism: press a citation, and the excerpt copies to your clipboard automatically. Navigate to the source, paste, search. Three steps to confirmation; no hunting through a page trying to remember what you read.
 
-![For citations with quote excerpts, pressing on the citation not only opens the source page but copies the excerpt to the clipboard, giving the user the ability to quickly locate the relevant text in the source.](/vimeo/1172452116?showVideoSettings=true&fullBleedBackgroundColor=%23ECEEEE)
+![For citations with quote excerpts, pressing on the citation not only opens the source page but copies the excerpt to the clipboard, giving the user the ability to quickly locate the relevant text in the source.](/vimeo/1172452116?showVideoSettings=true&fullBleedBackgroundColor=#ECEEEE)
 
 ### Granting users new powers with sources
 
@@ -135,13 +135,13 @@ Source badges let users distinguish between database pulls, news articles, and u
 
 I wanted to open that up: show each query as it happens, let users watch the agent work step by step. A table for Nvidia's debt, then Apple's, then Microsoft's; each one appearing in sequence rather than all at once. The transparency is the point; even if users never expand a single table, knowing the process is visible changes how the output feels.
 
-![The expanded source visibility inside Grounding POC](/vimeo/1172448470?showVideoSettings=true&fullBleedBackgroundColor=%004253)
+![The expanded source visibility inside Grounding POC](/vimeo/1172448470?showVideoSettings=true&fullBleedBackgroundColor=#EEF0F0)
 
 ## Reflections
 
 My team at Kensho and mentors at S&P threw me into the deep end in the best way possible. In my first formal design internship, I led two workshops on experimentation with AI design tools, sat on a panel with 2 senior designers, pitched my ideas to devs, PMs, and fellow designers, interviewed users on behalf of the whole product team, and got to work on features and design systems both in teams and on my own.
 
-![Shoutout Fiona for leading this Kensho workshop with me](/vimeo/1178542447?showVideoSettings=true&fullBleedBackgroundColor=%004253)
+![Shoutout Fiona for leading this Kensho workshop with me](/vimeo/1178542447?showVideoSettings=true&backgroundColor=#F6F6F6)
 
 ### Potential metrics
 
