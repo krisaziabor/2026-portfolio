@@ -33,7 +33,7 @@ npm run lint     # ESLint
 ## Content
 
 - **Case studies** — TypeScript modules in `content/case-studies/`. Password-protected studies use `CASE_STUDY_PASSWORD_<SLUG>` env vars (see `.env.local`).
-- **Recruiter access link** — Set `RECRUITER_ACCESS_TOKEN` in `.env.local` (and in Vercel env). Share `https://www.krisaziabor.com/access/<token>` or point **`work.krisaziabor.com`** at the same Vercel project; requests there 307 to `/access/<token>` (token is read at **build time** from `RECRUITER_ACCESS_TOKEN`). Override redirect host with `PORTFOLIO_SITE_HOST` if needed. Visiting the access URL unlocks all password-protected case studies for 30 days via httpOnly cookie, then redirects home (optional `?next=/work/<slug>`).
+- **Recruiter access link** — Set `RECRUITER_ACCESS_TOKEN` in `.env.local` (and in Vercel env). Share `https://www.krisaziabor.com/access/<token>`; requests there 307 to `/access/<token>` (token is read at **build time** from `RECRUITER_ACCESS_TOKEN`). Override redirect host with `PORTFOLIO_SITE_HOST` if needed. Visiting the access URL unlocks all password-protected case studies for 30 days via httpOnly cookie, then redirects home (optional `?next=/work/<slug>`).
 - **Academy items** — MDX files in `content/academy/`.
 - **Photos** — `content/photos.json`.
 
