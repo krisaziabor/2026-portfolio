@@ -139,7 +139,9 @@ I wanted to open that up: show each query as it happens, let users watch the age
 
 ## Reflections
 
-My team at Kensho and mentors at S&P threw me into the deep end in the best way possible. In my first formal design internship, I led two workshops on experimentation with AI design tools, pitched my ideas to devs, PMs, and fellow designers, interviewed users on behalf of the whole product team, and got to work on features and design systems both in teams and on my own.
+My team at Kensho and mentors at S&P threw me into the deep end in the best way possible. In my first formal design internship, I led two workshops on experimentation with AI design tools, sat on a panel with 2 senior designers, pitched my ideas to devs, PMs, and fellow designers, interviewed users on behalf of the whole product team, and got to work on features and design systems both in teams and on my own.
+
+![Shoutout Fiona for leading this Kensho workshop with me](/vimeo/1178542447?showVideoSettings=true&fullBleedBackgroundColor=%004253)
 
 ### Potential metrics
 
