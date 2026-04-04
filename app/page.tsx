@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useDialKit } from 'dialkit';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -100,10 +99,8 @@ function HeroMedia({
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
-  const scroll = useDialKit('Scroll', {
-    sensitivity: [0.7, 0.0, 2.0],
-    fadeWidth: [120, 80, 500],
-  });
+  const SENSITIVITY = 0.7;
+  const FADE_WIDTH = 120;
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
   const [heroVideoRatios, setHeroVideoRatios] = useState<Record<string, number>>({});
@@ -130,8 +127,8 @@ export default function Home() {
   }, [caseStudies]);
 
   const stripRef = useRef<HTMLDivElement>(null);
-  const sensitivityRef = useRef(scroll.sensitivity);
-  sensitivityRef.current = scroll.sensitivity;
+  const sensitivityRef = useRef(SENSITIVITY);
+  sensitivityRef.current = SENSITIVITY;
 
   // On lg+: intercept ALL scroll gestures at the window level and redirect them to the
   // horizontal strip. The page has no vertical scroll — everything goes left/right.
@@ -220,7 +217,7 @@ export default function Home() {
         <div
           className="hidden lg:block absolute left-0 top-0 bottom-0 pointer-events-none"
           style={{
-            width: scroll.fadeWidth,
+            width: FADE_WIDTH,
             background: 'linear-gradient(to left, transparent 0%, rgba(248,248,248,0.08) 25%, rgba(248,248,248,0.25) 50%, rgba(248,248,248,0.60) 75%, #F8F8F8 100%)',
             zIndex: 10,
             opacity: atStart ? 0 : 1,
@@ -231,7 +228,7 @@ export default function Home() {
         <div
           className="hidden lg:block absolute right-0 top-0 bottom-0 pointer-events-none"
           style={{
-            width: scroll.fadeWidth,
+            width: FADE_WIDTH,
             background: 'linear-gradient(to right, transparent 0%, rgba(248,248,248,0.08) 25%, rgba(248,248,248,0.25) 50%, rgba(248,248,248,0.60) 75%, #F8F8F8 100%)',
             zIndex: 10,
             opacity: atEnd ? 0 : 1,
