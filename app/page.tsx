@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useDialKit } from 'dialkit';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
@@ -99,6 +100,12 @@ function HeroMedia({
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
+  const scroll = useDialKit('Scroll', {
+    sensitivity: [0.7, 0.0, 2.0],
+    fadeWidth: [120, 80, 500],
+  });
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
   const [heroVideoRatios, setHeroVideoRatios] = useState<Record<string, number>>({});
   /** Slugs of case study cards whose video has been clicked (so iframe can receive pointer events and page scrolls by default). */
   const [activatedVideos, setActivatedVideos] = useState<Set<string>>(new Set());
@@ -122,16 +129,46 @@ export default function Home() {
     });
   }, [caseStudies]);
 
-  // When the strip is horizontal (lg+), treat strong vertical wheel as page scroll so the strip
-  // doesn't steal it. Below lg the strip is vertical — don't hijack wheel so native scroll stays smooth.
-  const handleCaseStudyStripWheel: React.WheelEventHandler<HTMLDivElement> = (event) => {
-    if (typeof window === 'undefined' || window.innerWidth < 1024) return;
-    const { deltaX, deltaY } = event;
-    if (Math.abs(deltaY) > Math.abs(deltaX)) {
-      event.preventDefault();
-      window.scrollBy({ top: deltaY, behavior: 'auto' });
-    }
-  };
+  const stripRef = useRef<HTMLDivElement>(null);
+  const sensitivityRef = useRef(scroll.sensitivity);
+  sensitivityRef.current = scroll.sensitivity;
+
+  // On lg+: intercept ALL scroll gestures at the window level and redirect them to the
+  // horizontal strip. The page has no vertical scroll — everything goes left/right.
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+
+    const onWheel = (e: WheelEvent) => {
+      if (window.innerWidth < 1024) return;
+      e.preventDefault();
+      // Use whichever axis has more movement so both vertical and horizontal gestures work.
+      const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      strip.scrollBy({ left: delta * sensitivityRef.current, behavior: 'auto' });
+    };
+
+    const onScroll = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = strip;
+      setAtStart(scrollLeft <= 0);
+      setAtEnd(scrollLeft + clientWidth >= scrollWidth - 1);
+    };
+
+    onScroll();
+    // Attach to window so gestures anywhere on the page redirect to the strip.
+    window.addEventListener('wheel', onWheel, { passive: false });
+    strip.addEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('wheel', onWheel);
+      strip.removeEventListener('scroll', onScroll);
+    };
+  }, []);
+
+  // Lock vertical scroll on desktop so the page never moves up/down.
+  useEffect(() => {
+    if (window.innerWidth < 1024) return;
+    document.documentElement.style.overflowY = 'hidden';
+    return () => { document.documentElement.style.overflowY = ''; };
+  }, []);
 
   const fadeUp = (delay: number) => ({
     initial: shouldReduceMotion ? false : { opacity: 0, y: 14 },
@@ -178,11 +215,33 @@ export default function Home() {
       </div>
 
       {/* Case Studies — vertical stack until lg (half MacBook ~720px stays stacked) */}
-      <div className="px-6 md:px-[72px]" style={{ paddingTop: '24px', paddingBottom: '96px' }}>
+      <div className="relative px-6 md:px-[72px]" style={{ paddingTop: '24px', paddingBottom: '96px' }}>
+        {/* Left-edge fade — appears once the user has scrolled past the start */}
         <div
+          className="hidden lg:block absolute left-0 top-0 bottom-0 pointer-events-none"
+          style={{
+            width: scroll.fadeWidth,
+            background: 'linear-gradient(to left, transparent 0%, rgba(248,248,248,0.08) 25%, rgba(248,248,248,0.25) 50%, rgba(248,248,248,0.60) 75%, #F8F8F8 100%)',
+            zIndex: 10,
+            opacity: atStart ? 0 : 1,
+            transition: 'opacity 300ms ease-out',
+          }}
+        />
+        {/* Right-edge fade — signals more content exists beyond the viewport; disappears at end */}
+        <div
+          className="hidden lg:block absolute right-0 top-0 bottom-0 pointer-events-none"
+          style={{
+            width: scroll.fadeWidth,
+            background: 'linear-gradient(to right, transparent 0%, rgba(248,248,248,0.08) 25%, rgba(248,248,248,0.25) 50%, rgba(248,248,248,0.60) 75%, #F8F8F8 100%)',
+            zIndex: 10,
+            opacity: atEnd ? 0 : 1,
+            transition: 'opacity 300ms ease-out',
+          }}
+        />
+        <div
+          ref={stripRef}
           className="flex flex-col lg:flex-row lg:overflow-x-auto scrollbar-hide"
-          style={{ gap: '40px', scrollSnapType: 'x mandatory' }}
-          onWheel={handleCaseStudyStripWheel}
+          style={{ gap: '40px' }}
         >
           {caseStudies.map((study, i) => {
             const media = study.landingMedia ?? study.heroMedia;
@@ -199,7 +258,7 @@ export default function Home() {
                 key={study.slug}
                 href={`/work/${study.slug}`}
                 className="flex flex-col shrink-0 group w-full lg:w-[48vw]"
-                style={{ scrollSnapAlign: 'start' }}
+                style={{  }}
                 // y + scale only — no opacity, so iframes always paint
                 initial={shouldReduceMotion ? false : { y: 24, scale: 0.96 }}
                 animate={{ y: 0, scale: 1 }}

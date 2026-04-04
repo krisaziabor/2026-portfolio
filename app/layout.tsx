@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
+import { DialRoot } from 'dialkit';
 import '@/styles/globals.css';
+import 'dialkit/styles.css';
 import { AgentationWrapper } from '@/components/AgentationWrapper';
 import { AcademyImagePreloader } from '@/components/AcademyImagePreloader';
 import { getAllAcademyItems } from '@/lib/content';
@@ -50,6 +52,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         {children}
+        <DialRoot />
         <AcademyImagePreloader srcs={firstUnitSrcs} />
         <AgentationWrapper />
         <Analytics />
