@@ -69,7 +69,7 @@ export function VimeoEmbedFigure({
 
   const containerStyle: React.CSSProperties = {
     aspectRatio: '16 / 9',
-    backgroundColor: backgroundColor ?? '#E8E8E8',
+    backgroundColor: backgroundColor ?? 'var(--color-card-border)',
   };
   const videoWrapperStyle: React.CSSProperties =
     backgroundColor != null && !maximizeVideo

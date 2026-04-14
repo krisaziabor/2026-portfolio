@@ -174,7 +174,7 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F8F8F8' }}>
+    <div className="min-h-screen work-page" style={{ backgroundColor: 'var(--color-background)' }}>
       <SiteHeader />
 
       {/* Bio */}
@@ -197,15 +197,15 @@ export default function Home() {
         </motion.p>
         <motion.p style={{ marginTop: '24px' }} {...fadeUp(0.2)}>
           CS &amp; Art at{' '}
-          <Link href="https://catalog.yale.edu/ycps/subjects-of-instruction/computing-arts/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
+          <Link href="https://catalog.yale.edu/ycps/subjects-of-instruction/computing-arts/" target="_blank" rel="noopener noreferrer" className="text-[var(--color-link)] hover:text-[var(--color-interactive)] transition-colors">
             Yale
           </Link>
           , previously Product Design at{' '}
-          <Link href="https://kensho.com/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
+          <Link href="https://kensho.com/" target="_blank" rel="noopener noreferrer" className="text-[var(--color-link)] hover:text-[var(--color-interactive)] transition-colors">
             Kensho
           </Link>
           {' '}&amp;{' '}
-          <Link href="https://www.spglobal.com/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
+          <Link href="https://www.spglobal.com/" target="_blank" rel="noopener noreferrer" className="text-[var(--color-link)] hover:text-[var(--color-interactive)] transition-colors">
             S&amp;P Global
           </Link>
         </motion.p>
@@ -218,7 +218,7 @@ export default function Home() {
           className="hidden lg:block absolute left-0 top-0 bottom-0 pointer-events-none"
           style={{
             width: FADE_WIDTH,
-            background: 'linear-gradient(to left, transparent 0%, rgba(248,248,248,0.08) 25%, rgba(248,248,248,0.25) 50%, rgba(248,248,248,0.60) 75%, #F8F8F8 100%)',
+            background: 'linear-gradient(to left, transparent 0%, color-mix(in srgb, var(--color-background) 8%, transparent) 25%, color-mix(in srgb, var(--color-background) 25%, transparent) 50%, color-mix(in srgb, var(--color-background) 60%, transparent) 75%, var(--color-background) 100%)',
             zIndex: 10,
             opacity: atStart ? 0 : 1,
             transition: 'opacity 300ms ease-out',
@@ -229,7 +229,7 @@ export default function Home() {
           className="hidden lg:block absolute right-0 top-0 bottom-0 pointer-events-none"
           style={{
             width: FADE_WIDTH,
-            background: 'linear-gradient(to right, transparent 0%, rgba(248,248,248,0.08) 25%, rgba(248,248,248,0.25) 50%, rgba(248,248,248,0.60) 75%, #F8F8F8 100%)',
+            background: 'linear-gradient(to right, transparent 0%, color-mix(in srgb, var(--color-background) 8%, transparent) 25%, color-mix(in srgb, var(--color-background) 25%, transparent) 50%, color-mix(in srgb, var(--color-background) 60%, transparent) 75%, var(--color-background) 100%)',
             zIndex: 10,
             opacity: atEnd ? 0 : 1,
             transition: 'opacity 300ms ease-out',

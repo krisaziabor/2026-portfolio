@@ -105,10 +105,11 @@ export function CaseStudyNavCard({
           setIsExpanded((prev) => !prev);
         }
       }}
-      className="relative bg-white rounded-sm cursor-pointer select-none overflow-hidden"
+      className="relative rounded-sm cursor-pointer select-none overflow-hidden"
       style={{
         borderRadius: '4px',
-        border: '1px solid #F0F0F0',
+        border: '1px solid var(--color-card-border)',
+        backgroundColor: 'var(--color-card-bg)',
         width: 'fit-content',
         minWidth: '250px',
         padding: `${CARD_PADDING_Y}px ${CARD_PADDING_X}px`,
@@ -145,7 +146,7 @@ export function CaseStudyNavCard({
             <div
               className="text-base leading-tight tracking-[-0.01em] shrink-0"
               style={{
-                color: '#000000',
+                color: 'var(--color-link)',
                 lineHeight: `${SECTION_LINE_HEIGHT}px`,
               }}
             >
@@ -156,7 +157,7 @@ export function CaseStudyNavCard({
               <motion.div
                 className="text-base leading-tight tracking-[-0.01em] shrink-0"
                 style={{
-                  color: 'rgba(0, 0, 0, 0.5)',
+                  color: 'var(--color-metadata)',
                   whiteSpace: 'nowrap',
                   lineHeight: `${SECTION_LINE_HEIGHT}px`,
                 }}
@@ -201,7 +202,7 @@ export function CaseStudyNavCard({
             <div
               className="text-base leading-tight tracking-[-0.01em] shrink-0"
               style={{
-                color: '#000000',
+                color: 'var(--color-link)',
                 lineHeight: `${SECTION_LINE_HEIGHT}px`,
               }}
             >
@@ -248,7 +249,7 @@ export function CaseStudyNavCard({
                       }}
                       className="text-base leading-tight tracking-[-0.01em] text-right transition-opacity hover:opacity-70 block w-full text-end border-0 bg-transparent p-0 m-0 cursor-pointer"
                       style={{
-                        color: isCurrentSection ? 'rgba(0, 0, 0, 0.5)' : '#000000',
+                        color: isCurrentSection ? 'var(--color-metadata)' : 'var(--color-link)',
                         lineHeight: `${SECTION_LINE_HEIGHT}px`,
                       }}
                     >

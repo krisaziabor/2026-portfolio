@@ -13,10 +13,12 @@ const navLinks = [
 export default function SiteHeader() {
   const pathname = usePathname();
   const isPhotoPage = pathname === '/photo';
+  const isWorkPage = pathname === '/' || pathname.startsWith('/work');
+  const isDarkPage = isPhotoPage || isWorkPage;
 
-  const bgColor = isPhotoPage ? '#141414' : '#F8F8F8';
-  const textColor = isPhotoPage ? 'rgba(232, 230, 230, 0.85)' : '#000';
-  const activeColor = isPhotoPage ? 'rgba(232, 230, 230, 0.35)' : 'rgba(0, 0, 0, 0.35)';
+  const bgColor = isDarkPage ? '#141414' : '#F8F8F8';
+  const textColor = isDarkPage ? 'rgba(232, 230, 230, 0.85)' : '#000';
+  const activeColor = isDarkPage ? 'rgba(232, 230, 230, 0.35)' : 'rgba(0, 0, 0, 0.35)';
 
   return (
     <header

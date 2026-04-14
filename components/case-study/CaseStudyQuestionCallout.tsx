@@ -15,7 +15,7 @@ function slugifyHeading(text: string): string {
 }
 
 const proseClasses =
-  'prose prose-sm font-[family-name:var(--font-lector)] lector-font [&_a]:text-black [&_a:hover]:text-[#8B6B5A] [&_a]:transition-colors [&_a]:duration-150 [&_a]:no-underline [&_p]:mb-[var(--space-2)] [&_p:last-child]:mb-0 [&_p]:max-w-full [&_h2]:mt-[var(--space-2)] [&_h2]:mb-[var(--space-2)] [&_h2]:font-normal [&_ul]:my-[var(--space-2)] [&_ul]:max-w-full [&_li]:mb-1';
+  'prose prose-sm font-[family-name:var(--font-lector)] lector-font [&_a]:text-[var(--color-link)] [&_a:hover]:text-[var(--color-interactive)] [&_a]:transition-colors [&_a]:duration-150 [&_a]:no-underline [&_p]:mb-[var(--space-2)] [&_p:last-child]:mb-0 [&_p]:max-w-full [&_h2]:mt-[var(--space-2)] [&_h2]:mb-[var(--space-2)] [&_h2]:font-normal [&_ul]:my-[var(--space-2)] [&_ul]:max-w-full [&_li]:mb-1';
 
 export function CaseStudyQuestionCallout({
   markdown,

@@ -179,7 +179,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
   });
 
   return (
-    <div className="h-screen flex flex-col" style={{ backgroundColor: '#F8F8F8' }}>
+    <div className="h-screen flex flex-col work-page" style={{ backgroundColor: 'var(--color-background)' }}>
       <SiteHeader />
       <div className="flex flex-1 min-h-0">
 
@@ -200,11 +200,11 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
         >
           {/* Card — y+scale only, no opacity so hero iframes always paint */}
           <motion.div
-            className="bg-white w-full overflow-hidden"
+            className="w-full overflow-hidden"
             style={{
               borderRadius: '4px',
-              border: '1px solid #dbd8d8',
-              backgroundColor: '#FCFCFC',
+              border: '1px solid var(--color-card-border)',
+              backgroundColor: 'var(--color-card-bg)',
               minWidth: 0,
               minHeight: 728,
             }}
@@ -347,7 +347,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                                 <p className="mb-[var(--space-2)] last:mb-0">{children}</p>
                               ),
                               a: ({ href, children }) => (
-                                <a href={href} className="text-black transition-colors duration-150 hover:text-[#8B6B5A]">{children}</a>
+                                <a href={href} className="text-[var(--color-link)] transition-colors duration-150 hover:text-[var(--color-interactive)]">{children}</a>
                               ),
                             }}
                           >
@@ -466,12 +466,12 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
           {/* Next case study preview: intro, metadata, heroMedia, "View case study →" */}
           {nextCaseStudy && (
             <div
-              className="w-full bg-white overflow-hidden shrink-0"
+              className="w-full overflow-hidden shrink-0"
               style={{
                 marginTop: 'var(--space-8)',
                 borderRadius: '4px',
-                border: '1px solid #dbd8d8',
-                backgroundColor: '#FCFCFC',
+                border: '1px solid var(--color-card-border)',
+                backgroundColor: 'var(--color-card-bg)',
               }}
             >
               {/* Hero: optional chrome + media */}
