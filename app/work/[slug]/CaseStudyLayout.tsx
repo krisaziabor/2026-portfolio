@@ -165,10 +165,11 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
       .catch(() => {});
   }, [nextVimeoId]);
   const introText = caseStudy.intro ?? '';
-  const skipLabel = caseStudy.skipToSection ? `Skip to ${caseStudy.skipToSection} →` : 'Skip to content →';
+  const hasSkipLink = Boolean(caseStudy.skipToSection);
+  const skipLabel = caseStudy.skipToSection ? `Skip to ${caseStudy.skipToSection} →` : '';
   const skipTargetId = caseStudy.skipToSection
     ? caseStudy.skipToSection.toLowerCase().replace(/\s+/g, '-')
-    : 'case-study-body';
+    : '';
   const showBody = !caseStudy.isProtected || isUnlocked || locallyUnlocked;
   const showPasswordSection = caseStudy.isProtected && !isUnlocked && !locallyUnlocked;
 
@@ -295,7 +296,7 @@ export function CaseStudyLayout({ caseStudy, nextCaseStudy, isUnlocked }: CaseSt
                       ))}
                     </div>
                   ) : null}
-                  {showBody && (
+                  {showBody && hasSkipLink && (
                     <Link
                       href={`#${skipTargetId}`}
                       onClick={(e) => {

@@ -29,8 +29,9 @@ npm run lint   # Run ESLint
 Defined in `styles/globals.css` using CSS custom properties:
 
 **Colors**:
-- content (#000), metadata (#6B6B6B), interactive (#8B6B5A terracotta), background (#FFF)
+- content (#404040), metadata (#6B6B6B), interactive (#8B6B5A terracotta), background (#F8F8F8), link (#000), card-bg (#FCFCFC), card-border (#dbd8d8)
 - Defined in both `@theme` (for Tailwind) and `:root` (for direct CSS use)
+- Work pages (home + case studies) use dark mode via `body:has(.work-page)` — overrides content (#D5D3D3), metadata (#8A8A8A), interactive (#B8907B), background (#141414), link (#E8E6E6), card-bg (#1E1E1E), card-border (#2A2A2A)
 
 **Typography**:
 - Font: Lector (Georgia fallback) - `--font-body`
