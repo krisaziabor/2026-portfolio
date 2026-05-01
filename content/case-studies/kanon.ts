@@ -66,6 +66,8 @@ If outside the scope and data quality is low, Claude Haiku API fills in the gaps
 
 Kanon is live to my community of friends and family. Public launch and full case study soon.
 
+[Experience the art exhibition experience here.](https://kanon.krisaziabor.com/installation)
+
 *A social network, library, installation, book, and practice.
 In partial fulfillment of the requirements for the degree of Bachelor of Arts in Computing and the Arts at Yale University.*
 
