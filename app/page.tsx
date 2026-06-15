@@ -8,7 +8,7 @@ import SiteHeader from '@/components/navigation/SiteHeader';
 import { caseStudies } from '@/content/case-studies';
 import type { CaseStudyHeroMedia, CaseStudyLandingMedia } from '@/types/case-study';
 
-const DEFAULT_VIDEO_ASPECT = 4 / 3;
+const CARD_ASPECT_RATIO = 4 / 3;
 
 const MotionLink = motion.create(Link);
 
@@ -32,8 +32,6 @@ function renderWithMarkdown(text: string): React.ReactNode {
 
 function HeroMedia({
   media,
-  backgroundColor,
-  videoAspectRatio = DEFAULT_VIDEO_ASPECT,
   /** When true and media is video, iframe uses pointer-events: none and a click overlay so the page scrolls; click activates the video. */
   videoScrollPassthrough = false,
   videoActivated = false,
@@ -41,8 +39,6 @@ function HeroMedia({
   onImageLoad,
 }: {
   media: CaseStudyHeroMedia | CaseStudyLandingMedia;
-  backgroundColor: string;
-  videoAspectRatio?: number;
   videoScrollPassthrough?: boolean;
   videoActivated?: boolean;
   onVideoActivate?: () => void;
@@ -50,16 +46,14 @@ function HeroMedia({
 }) {
   if (media.type === 'image') {
     return (
-      <div className="relative w-full h-full" style={{ backgroundColor }}>
-        <Image
-          src={media.src}
-          alt={media.alt}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 62.5vw"
-          onLoad={onImageLoad}
-        />
-      </div>
+      <Image
+        src={media.src}
+        alt={media.alt}
+        fill
+        className="object-cover"
+        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 48vw"
+        onLoad={onImageLoad}
+      />
     );
   }
   if (media.type === 'video' && media.vimeoId) {
@@ -75,10 +69,7 @@ function HeroMedia({
           src={embedUrl}
           title={media.alt}
           className="absolute inset-0 w-full h-full border-0"
-          style={{
-            backgroundColor,
-            pointerEvents: allowScroll ? 'none' : 'auto',
-          }}
+          style={{ pointerEvents: allowScroll ? 'none' : 'auto' }}
           allow="autoplay; fullscreen; picture-in-picture"
           allowFullScreen
         />
@@ -103,28 +94,17 @@ export default function Home() {
   const FADE_WIDTH = 120;
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
-  const [heroVideoRatios, setHeroVideoRatios] = useState<Record<string, number>>({});
   /** Slugs of case study cards whose video has been clicked (so iframe can receive pointer events and page scrolls by default). */
   const [activatedVideos, setActivatedVideos] = useState<Set<string>>(new Set());
   /** Slugs of image (non-video) case study cards whose image has finished loading. */
   const [loadedImageCards, setLoadedImageCards] = useState<Set<string>>(new Set());
+  /** Cards at index >= 2 mount their media only after this flips true, so cards 0–1 get the bandwidth head start. */
+  const [deferredReady, setDeferredReady] = useState(false);
 
-  // Fetch Vimeo oEmbed for landing card videos (landingMedia ?? heroMedia) so containers match actual dimensions
   useEffect(() => {
-    caseStudies.forEach((study) => {
-      const media = study.landingMedia ?? study.heroMedia;
-      const vimeoId = media?.type === 'video' ? media.vimeoId : null;
-      if (!vimeoId || heroVideoRatios[vimeoId]) return;
-      fetch(`https://vimeo.com/api/oembed.json?url=https://vimeo.com/${vimeoId}&width=400`)
-        .then((r) => r.json())
-        .then((data) => {
-          if (data.width && data.height) {
-            setHeroVideoRatios((prev) => ({ ...prev, [vimeoId]: data.width / data.height }));
-          }
-        })
-        .catch(() => {});
-    });
-  }, [caseStudies]);
+    const t = setTimeout(() => setDeferredReady(true), 900);
+    return () => clearTimeout(t);
+  }, []);
 
   const stripRef = useRef<HTMLDivElement>(null);
   const sensitivityRef = useRef(SENSITIVITY);
@@ -242,20 +222,21 @@ export default function Home() {
         >
           {caseStudies.map((study, i) => {
             const media = study.landingMedia ?? study.heroMedia;
-            const overlayDelay = shouldReduceMotion ? 0 : 0.40 + i * 0.13;
+            const isDeferred = i >= 2;
+            const shouldMountMedia = !isDeferred || deferredReady;
+            const overlayDelay = shouldReduceMotion
+              ? 0
+              : isDeferred
+                ? 1.5 + (i - 2) * 0.13
+                : 0.40 + i * 0.13;
             const bgColor = study.heroBackgroundColor ?? '#1a1a1a';
             const isVideo = media?.type === 'video';
-            const vimeoId = isVideo ? media.vimeoId : null;
-            const cardAspectRatio = isVideo && vimeoId
-              ? (heroVideoRatios[vimeoId] ?? DEFAULT_VIDEO_ASPECT)
-              : DEFAULT_VIDEO_ASPECT;
 
             return (
               <MotionLink
                 key={study.slug}
                 href={`/work/${study.slug}`}
                 className="flex flex-col shrink-0 group w-full lg:w-[48vw]"
-                style={{  }}
                 // y + scale only — no opacity, so iframes always paint
                 initial={shouldReduceMotion ? false : { y: 24, scale: 0.96 }}
                 animate={{ y: 0, scale: 1 }}
@@ -268,20 +249,20 @@ export default function Home() {
                 <div
                   className="relative w-full overflow-hidden transition-opacity duration-200 ease-out group-hover:opacity-70 lg:max-h-[calc(100vh-420px)]"
                   style={{
-                    aspectRatio: String(cardAspectRatio),
+                    aspectRatio: String(CARD_ASPECT_RATIO),
                     backgroundColor: bgColor,
                     borderRadius: '2px',
                   }}
                 >
-                  <HeroMedia
-                    media={media!}
-                    backgroundColor={bgColor}
-                    videoAspectRatio={isVideo && vimeoId ? (heroVideoRatios[vimeoId] ?? DEFAULT_VIDEO_ASPECT) : undefined}
-                    videoScrollPassthrough={isVideo}
-                    videoActivated={isVideo && activatedVideos.has(study.slug)}
-                    onVideoActivate={isVideo ? () => setActivatedVideos((prev) => new Set([...prev, study.slug])) : undefined}
-                    onImageLoad={!isVideo ? () => setLoadedImageCards((prev) => new Set([...prev, study.slug])) : undefined}
-                  />
+                  {shouldMountMedia && (
+                    <HeroMedia
+                      media={media!}
+                      videoScrollPassthrough={isVideo}
+                      videoActivated={isVideo && activatedVideos.has(study.slug)}
+                      onVideoActivate={isVideo ? () => setActivatedVideos((prev) => new Set([...prev, study.slug])) : undefined}
+                      onImageLoad={!isVideo ? () => setLoadedImageCards((prev) => new Set([...prev, study.slug])) : undefined}
+                    />
+                  )}
 
                   {/* Overlay: videos use time-based dissolve; images gate on onLoad so content is never revealed before it's ready */}
                   {!shouldReduceMotion && (
