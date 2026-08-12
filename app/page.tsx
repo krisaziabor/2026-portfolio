@@ -112,35 +112,84 @@ function CardMedia({
   expanded,
   onToggle,
   shouldReduceMotion,
+  dimmed,
 }: {
   item: Gen3Item;
   expanded: boolean;
   onToggle?: () => void;
   shouldReduceMotion: boolean;
+  dimmed?: boolean;
 }) {
   const { media } = item;
   const aspect = media.width / media.height;
   const aspectCss = `${media.width} / ${media.height}`;
 
+  // Pause + rewind the Vimeo player while it's out of the viewport so every
+  // video starts from the beginning when it comes back into view.
+  const placeholderRef = useRef<HTMLDivElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const isVideo = media.type === 'vimeo';
+  useEffect(() => {
+    const el = placeholderRef.current;
+    if (!isVideo || !el) return;
+    const post = (method: string, value?: number) => {
+      iframeRef.current?.contentWindow?.postMessage(
+        JSON.stringify(value !== undefined ? { method, value } : { method }),
+        'https://player.vimeo.com'
+      );
+    };
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          post('play');
+        } else {
+          post('pause');
+          post('setCurrentTime', 0);
+        }
+      },
+      { threshold: 0.05 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isVideo]);
+
   if (media.type === 'image') {
-    // Static media (Design at Yale logo) — no expand interaction, fills its box edge to edge.
+    // Static logos — optional href turns the mark into an external link.
+    const boxStyle: React.CSSProperties = {
+      aspectRatio: aspectCss,
+      backgroundColor: media.background,
+      borderRadius: '2px',
+      overflow: 'hidden',
+      ...dimStyle(dimmed ?? false),
+    };
+    const boxClass =
+      'relative block w-[12.5%] max-w-[var(--media-w)] lg:w-[var(--media-w)] lg:max-w-none';
+    const image = (
+      <Image
+        src={media.src}
+        alt={media.alt}
+        fill
+        className="object-cover"
+        sizes={`${media.thumbWidth}px`}
+      />
+    );
+    if (media.href) {
+      return (
+        <a
+          href={media.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={media.alt}
+          className={boxClass}
+          style={boxStyle}
+        >
+          {image}
+        </a>
+      );
+    }
     return (
-      <div
-        className="relative w-[15%] lg:w-[var(--media-w)]"
-        style={{
-          aspectRatio: aspectCss,
-          backgroundColor: media.background,
-          borderRadius: '2px',
-          overflow: 'hidden',
-        }}
-      >
-        <Image
-          src={media.src}
-          alt={media.alt}
-          fill
-          className="object-cover"
-          sizes={`${media.thumbWidth}px`}
-        />
+      <div className={boxClass} style={boxStyle}>
+        {image}
       </div>
     );
   }
@@ -149,7 +198,11 @@ function CardMedia({
 
   return (
     // Placeholder keeps the card layout intact while the video floats to the center.
-    <div className="relative w-1/4 lg:w-[var(--media-w)]" style={{ aspectRatio: aspectCss }}>
+    <div
+      ref={placeholderRef}
+      className="relative w-1/3 lg:w-[var(--media-w)]"
+      style={{ aspectRatio: aspectCss, ...dimStyle(dimmed ?? false) }}
+    >
       <motion.div
         layout
         // Only re-measure layout when the expanded state flips. Without this,
@@ -185,6 +238,7 @@ function CardMedia({
         }}
       >
         <iframe
+          ref={iframeRef}
           src={embedUrl}
           title={item.title}
           className="absolute inset-0 h-full w-full border-0"
@@ -329,8 +383,7 @@ export default function Home() {
                   </div>
                 </div>
                 <p className="mt-6 lg:mt-[14px]">
-              Making new things feel familiar and familiar things feel new,
-              <br />
+              Making new things feel familiar and familiar things feel new,{' '}
               <span style={{ color: 'var(--color-emphasis)' }}>Kristopher Aziabor</span> is a design
               engineer tracing origins, elevating minimalism, and creating traditions of love and
               exploration.
@@ -372,11 +425,21 @@ export default function Home() {
                 }}
                 {...fadeUp(2 + i)}
               >
-                <div
-                  className="lg:flex lg:h-[var(--media-row-h)] lg:items-end"
-                  style={dimStyle(anyExpanded && !isExpanded)}
-                >
+                {/* Dimming is applied per media item (not on this row) so extras
+                    still fade when this card's own video expands. */}
+                <div className="lg:flex lg:h-[var(--media-row-h)] lg:items-end">
                   <div className="flex w-full items-end gap-3">
+                    <CardMedia
+                      item={item}
+                      expanded={isExpanded}
+                      onToggle={
+                        isVideo
+                          ? () => setExpandedId(isExpanded ? null : item.id)
+                          : undefined
+                      }
+                      shouldReduceMotion={shouldReduceMotion ?? false}
+                      dimmed={anyExpanded && !isExpanded}
+                    />
                     {item.extraMedia?.map((extra, mi) => (
                       <div
                         key={mi}
@@ -387,19 +450,10 @@ export default function Home() {
                           item={{ ...item, media: extra }}
                           expanded={false}
                           shouldReduceMotion={shouldReduceMotion ?? false}
+                          dimmed={anyExpanded}
                         />
                       </div>
                     ))}
-                    <CardMedia
-                      item={item}
-                      expanded={isExpanded}
-                      onToggle={
-                        isVideo
-                          ? () => setExpandedId(isExpanded ? null : item.id)
-                          : undefined
-                      }
-                      shouldReduceMotion={shouldReduceMotion ?? false}
-                    />
                   </div>
                 </div>
                 <div style={dimStyle(anyExpanded)}>

@@ -18,6 +18,8 @@ export type Gen3Media =
       height: number;
       thumbWidth: number;
       background: string;
+      /** Optional external link — logo becomes a clickable mark. */
+      href?: string;
     };
 
 export type Gen3Item = {
@@ -30,7 +32,7 @@ export type Gen3Item = {
       `[label](url)` renders as an external link. */
   description: string[];
   media: Gen3Media;
-  /** Additional media shown before the primary in the media row (not expandable). */
+  /** Additional media shown after the primary in the media row (not expandable). */
   extraMedia?: Gen3Media[];
 };
 
@@ -62,13 +64,27 @@ export const gen3Items: Gen3Item[] = [
       'Led 2 workshops on AI design tools, including one for an audience of 100 S&P Global designers. In addition, I represented Kensho on an AI design panel alongside 2 senior designers with a combined 20+ years of experience.',
     ],
     media: {
-      type: 'vimeo',
-      vimeoId: '1173121514',
-      width: 1920,
-      height: 1442,
-      thumbWidth: 168,
-      background: '#ECEEEE',
+      type: 'image',
+      src: '/gen3/sp-global.png',
+      alt: 'S&P Global logo',
+      width: 300,
+      height: 300,
+      thumbWidth: 42,
+      background: 'transparent',
+      href: 'https://www.spglobal.com',
     },
+    extraMedia: [
+      {
+        type: 'image',
+        src: '/gen3/kensho.png',
+        alt: 'Kensho logo',
+        width: 150,
+        height: 150,
+        thumbWidth: 42,
+        background: 'transparent',
+        href: 'https://kensho.com',
+      },
+    ],
   },
   {
     id: 'design-at-yale',
@@ -80,23 +96,14 @@ export const gen3Items: Gen3Item[] = [
       "During my tenure, I led the brand redesign of Yale's largest CS club as well as the website for Sea12, a startup that went on to secure multi-million dollar backing from firms like Caffeinated Capital, Haystack Ventures & SV Angel.",
     ],
     media: {
-      type: 'vimeo',
-      vimeoId: '1164167790',
-      width: 1920,
-      height: 1080,
-      thumbWidth: 168,
-      background: '#EEE8E1',
+      type: 'image',
+      src: '/gen3/design-at-yale.png',
+      alt: 'Design at Yale logo',
+      width: 1,
+      height: 1,
+      thumbWidth: 42,
+      background: '#FFFFFF',
+      href: 'https://designatyale.com',
     },
-    extraMedia: [
-      {
-        type: 'image',
-        src: '/gen3/design-at-yale.png',
-        alt: 'Design at Yale logo',
-        width: 1,
-        height: 1,
-        thumbWidth: 56,
-        background: '#FFFFFF',
-      },
-    ],
   },
 ];
