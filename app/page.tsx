@@ -376,16 +376,31 @@ export default function Home() {
                   className="lg:flex lg:h-[var(--media-row-h)] lg:items-end"
                   style={dimStyle(anyExpanded && !isExpanded)}
                 >
-                  <CardMedia
-                    item={item}
-                    expanded={isExpanded}
-                    onToggle={
-                      isVideo
-                        ? () => setExpandedId(isExpanded ? null : item.id)
-                        : undefined
-                    }
-                    shouldReduceMotion={shouldReduceMotion ?? false}
-                  />
+                  <div className="flex w-full items-end gap-3">
+                    {item.extraMedia?.map((extra, mi) => (
+                      <div
+                        key={mi}
+                        className="contents"
+                        style={{ ['--media-w' as string]: `${extra.thumbWidth}px` }}
+                      >
+                        <CardMedia
+                          item={{ ...item, media: extra }}
+                          expanded={false}
+                          shouldReduceMotion={shouldReduceMotion ?? false}
+                        />
+                      </div>
+                    ))}
+                    <CardMedia
+                      item={item}
+                      expanded={isExpanded}
+                      onToggle={
+                        isVideo
+                          ? () => setExpandedId(isExpanded ? null : item.id)
+                          : undefined
+                      }
+                      shouldReduceMotion={shouldReduceMotion ?? false}
+                    />
+                  </div>
                 </div>
                 <div style={dimStyle(anyExpanded)}>
                   <h2 style={{ marginTop: '14px', fontSize: '15px', fontWeight: 400 }}>

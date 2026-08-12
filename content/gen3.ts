@@ -30,6 +30,8 @@ export type Gen3Item = {
       `[label](url)` renders as an external link. */
   description: string[];
   media: Gen3Media;
+  /** Additional media shown before the primary in the media row (not expandable). */
+  extraMedia?: Gen3Media[];
 };
 
 export const gen3Items: Gen3Item[] = [
@@ -78,13 +80,23 @@ export const gen3Items: Gen3Item[] = [
       "During my tenure, I led the brand redesign of Yale's largest CS club as well as the website for Sea12, a startup that went on to secure multi-million dollar backing from firms like Caffeinated Capital, Haystack Ventures & SV Angel.",
     ],
     media: {
-      type: 'image',
-      src: '/gen3/design-at-yale.png',
-      alt: 'Design at Yale logo',
-      width: 1,
-      height: 1,
-      thumbWidth: 80,
-      background: '#FFFFFF',
+      type: 'vimeo',
+      vimeoId: '1164167790',
+      width: 1920,
+      height: 1080,
+      thumbWidth: 168,
+      background: '#EEE8E1',
     },
+    extraMedia: [
+      {
+        type: 'image',
+        src: '/gen3/design-at-yale.png',
+        alt: 'Design at Yale logo',
+        width: 1,
+        height: 1,
+        thumbWidth: 56,
+        background: '#FFFFFF',
+      },
+    ],
   },
 ];
