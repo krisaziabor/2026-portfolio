@@ -26,22 +26,24 @@
 }
 
 @theme {
-  --color-content: #404040;
-  --color-metadata: #6B6B6B;
-  --color-interactive: #8B6B5A;
-  --color-background: #F8F8F8;
-}
-
-html {
-  scroll-behavior: smooth;
+  --color-content: #8A8A8A;
+  --color-metadata: #8A8A8A;
+  --color-interactive: #B8907B;
+  --color-background: #0A0A0A;
+  --color-link: #8A8A8A;
+  --color-emphasis: #D9D7D7;
 }
 
 :root {
-  /* Colors */
-  --color-content: #404040;
-  --color-metadata: #6B6B6B;
-  --color-interactive: #8B6B5A;
-  --color-background: #F8F8F8;
+  /* Colors — dark, single-page site.
+     Body/titles/links share the muted gray; --color-emphasis is the bright pop
+     reserved for "Kristopher Aziabor" in the bio. */
+  --color-content: #8A8A8A;
+  --color-metadata: #8A8A8A;
+  --color-interactive: #B8907B;
+  --color-background: #0A0A0A;
+  --color-link: #8A8A8A;
+  --color-emphasis: #D9D7D7;
 
   /* Typography */
   --font-lector: "Lector FSL", Georgia, serif;
@@ -92,33 +94,18 @@ body {
    have higher cascade priority and can override per-element. */
 @layer base {
   a {
-    color: #000000;
+    color: var(--color-link);
     white-space: var(--link-white-space, nowrap);
     transition: color 150ms ease;
   }
   a:hover {
     color: var(--color-interactive);
   }
-}
 
-/* Photo page: dark body so overscroll reveals #141414, not #F8F8F8 */
-body:has(.photo-page) {
-  background-color: #141414;
-}
-
-/* Academy page links: allow title text to wrap */
-.academy-page a {
-  white-space: normal;
-}
-
-/* Photo page: suppress the terracotta hover — nav links there dim via opacity instead */
-.photo-page a:hover {
-  color: inherit;
-}
-
-/* Academy grid: group cards always show the terracotta left indicator on touch devices */
-@media (hover: none) {
-  .academy-group-wrapper {
-    box-shadow: inset 3px 0 0 var(--color-interactive) !important;
+  @media (prefers-reduced-motion: reduce) {
+    a,
+    body {
+      transition: none;
+    }
   }
 }

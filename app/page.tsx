@@ -1,117 +1,231 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
+import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion, useReducedMotion } from 'framer-motion';
-import SiteHeader from '@/components/navigation/SiteHeader';
-import { caseStudies } from '@/content/case-studies';
-import type { CaseStudyHeroMedia, CaseStudyLandingMedia } from '@/types/case-study';
-
-const CARD_ASPECT_RATIO = 4 / 3;
-
-const MotionLink = motion.create(Link);
+import { gen3Items, type Gen3Item } from '@/content/gen3';
 
 // ease-out-expo for cinematic entrances
 const EASE = [0.19, 1, 0.22, 1] as const;
-const DURATION = 0.85;
+const EXPAND_DURATION = 0.55;
+const DIM_OPACITY = 0.12;
 
-function renderWithMarkdown(text: string): React.ReactNode {
-  const parts: React.ReactNode[] = [];
-  const regex = /\*([^*]+)\*/g;
-  let lastIndex = 0;
-  let match;
-  while ((match = regex.exec(text)) !== null) {
-    if (match.index > lastIndex) parts.push(text.slice(lastIndex, match.index));
-    parts.push(<em key={match.index}>{match[1]}</em>);
-    lastIndex = regex.lastIndex;
-  }
-  if (lastIndex < text.length) parts.push(text.slice(lastIndex));
-  return parts.length > 0 ? parts : text;
+/* ─────────────────────────────────────────────────────────
+ * ENTRANCE — "Slow Cinema"
+ * Reveal order: header → bio → cards → footer.
+ * A long, luxurious blur dissolve with a slight rise; the
+ * stagger is subtle (80ms) so the sequencing never feels
+ * defined — the cinema comes from blur + duration.
+ * ───────────────────────────────────────────────────────── */
+const ENTRANCE = {
+  y: 10,          // px rise
+  blur: 16,       // px starting blur
+  duration: 2.1,  // s
+  ease: EASE,     // ease-out-expo
+  stagger: 0.08,  // s between successive elements
+  baseDelay: 0.2, // s before the first element starts
+};
+
+const CARD_WIDTH = 460;
+const EDGE_FADE_WIDTH = 140;
+
+/** Tallest thumbnail in the strip — every media slot (and the bio portrait) occupies
+    this height on lg+, so all titles and the bio text start on the same line. */
+const MEDIA_ROW_HEIGHT = Math.ceil(
+  Math.max(...gen3Items.map((i) => (i.media.thumbWidth * i.media.height) / i.media.width))
+);
+
+const externalLinks = [
+  { label: 'Archive', href: 'https://archived.krisaziabor.com' },
+  { label: 'Photo', href: 'https://photo.krisaziabor.com' },
+  { label: 'hello@krisaziabor.com', href: 'mailto:hello@krisaziabor.com' },
+];
+
+function NewYorkClock() {
+  const [time, setTime] = useState<string | null>(null);
+
+  useEffect(() => {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZone: 'America/New_York',
+    });
+    const tick = () => setTime(formatter.format(new Date()));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <span style={{ color: 'var(--color-metadata)' }}>
+      {time ? `${time} in New York` : '\u00A0'}
+    </span>
+  );
 }
 
-function HeroMedia({
-  media,
-  /** When true and media is video, iframe uses pointer-events: none and a click overlay so the page scrolls; click activates the video. */
-  videoScrollPassthrough = false,
-  videoActivated = false,
-  onVideoActivate,
-  onImageLoad,
+function LinkRow({ className, dimmed }: { className?: string; dimmed: boolean }) {
+  return (
+    <div className={className} style={dimStyle(dimmed)}>
+      {externalLinks.map((link) => (
+        <a
+          key={link.label}
+          href={link.href}
+          target={link.href.startsWith('http') ? '_blank' : undefined}
+          rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
+        >
+          {link.label}
+        </a>
+      ))}
+    </div>
+  );
+}
+
+/** Everything except the expanded video dims while a video is open. */
+function dimStyle(dimmed: boolean): React.CSSProperties {
+  return {
+    opacity: dimmed ? DIM_OPACITY : 1,
+    transition: 'opacity 400ms ease-out',
+  };
+}
+
+/** Renders `[label](url)` spans inside description copy as external links. */
+function renderWithLinks(text: string): React.ReactNode {
+  const parts: React.ReactNode[] = [];
+  const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
+  let last = 0;
+  let match: RegExpExecArray | null;
+  while ((match = linkPattern.exec(text)) !== null) {
+    if (match.index > last) parts.push(text.slice(last, match.index));
+    parts.push(
+      <a key={match.index} href={match[2]} target="_blank" rel="noopener noreferrer">
+        {match[1]}
+      </a>
+    );
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
+}
+
+function CardMedia({
+  item,
+  expanded,
+  onToggle,
+  shouldReduceMotion,
 }: {
-  media: CaseStudyHeroMedia | CaseStudyLandingMedia;
-  videoScrollPassthrough?: boolean;
-  videoActivated?: boolean;
-  onVideoActivate?: () => void;
-  onImageLoad?: () => void;
+  item: Gen3Item;
+  expanded: boolean;
+  onToggle?: () => void;
+  shouldReduceMotion: boolean;
 }) {
+  const { media } = item;
+  const aspect = media.width / media.height;
+  const aspectCss = `${media.width} / ${media.height}`;
+
   if (media.type === 'image') {
+    // Static media (Design at Yale logo) — no expand interaction, fills its box edge to edge.
     return (
-      <Image
-        src={media.src}
-        alt={media.alt}
-        fill
-        className="object-cover"
-        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 48vw"
-        onLoad={onImageLoad}
-      />
+      <div
+        className="relative w-[15%] lg:w-[var(--media-w)]"
+        style={{
+          aspectRatio: aspectCss,
+          backgroundColor: media.background,
+          borderRadius: '2px',
+          overflow: 'hidden',
+        }}
+      >
+        <Image
+          src={media.src}
+          alt={media.alt}
+          fill
+          className="object-cover"
+          sizes={`${media.thumbWidth}px`}
+        />
+      </div>
     );
   }
-  if (media.type === 'video' && media.vimeoId) {
-    const hasAudio = media.hasAudio ?? false;
-    const embedParams = new URLSearchParams({
-      ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1', playsinline: '1' }),
-    });
-    const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
-    const allowScroll = videoScrollPassthrough && !videoActivated;
-    return (
-      <>
+
+  const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?background=1&autoplay=1&loop=1&muted=1&playsinline=1`;
+
+  return (
+    // Placeholder keeps the card layout intact while the video floats to the center.
+    <div className="relative w-1/4 lg:w-[var(--media-w)]" style={{ aspectRatio: aspectCss }}>
+      <motion.div
+        layout
+        // Only re-measure layout when the expanded state flips. Without this,
+        // any re-render during a page layout shift (e.g. mobile URL-bar resize
+        // while scrolling) makes the video glide to its new position instead
+        // of moving rigidly with the page.
+        layoutDependency={expanded}
+        transition={{ layout: { duration: shouldReduceMotion ? 0 : EXPAND_DURATION, ease: EASE } }}
+        role="button"
+        tabIndex={0}
+        aria-label={expanded ? `Close ${item.title} video` : `Expand ${item.title} video`}
+        onClick={onToggle}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onToggle?.();
+          }
+        }}
+        className={expanded ? 'fixed z-50 cursor-pointer' : 'absolute inset-0 cursor-pointer'}
+        style={{
+          backgroundColor: media.background,
+          borderRadius: '2px',
+          overflow: 'hidden',
+          ...(expanded
+            ? {
+                // inset 0 + margin auto centers the definite-sized box in the viewport
+                inset: 0,
+                margin: 'auto',
+                width: `min(57vw, calc(${aspect.toFixed(4)} * 58.5vh))`,
+                aspectRatio: aspectCss,
+              }
+            : {}),
+        }}
+      >
         <iframe
           src={embedUrl}
-          title={media.alt}
-          className="absolute inset-0 w-full h-full border-0"
-          style={{ pointerEvents: allowScroll ? 'none' : 'auto' }}
+          title={item.title}
+          className="absolute inset-0 h-full w-full border-0"
+          style={{ pointerEvents: 'none' }}
           allow="autoplay; fullscreen; picture-in-picture"
-          allowFullScreen
         />
-        {allowScroll && onVideoActivate && (
-          <button
-            type="button"
-            className="absolute inset-0 w-full h-full cursor-pointer"
-            style={{ zIndex: 1 }}
-            onClick={onVideoActivate}
-            aria-label="Interact with video"
-          />
-        )}
-      </>
-    );
-  }
-  return null;
+      </motion.div>
+    </div>
+  );
 }
 
 export default function Home() {
   const shouldReduceMotion = useReducedMotion();
-  const SENSITIVITY = 0.7;
-  const FADE_WIDTH = 120;
-  const [atStart, setAtStart] = useState(true);
-  const [atEnd, setAtEnd] = useState(false);
-  /** Slugs of case study cards whose video has been clicked (so iframe can receive pointer events and page scrolls by default). */
-  const [activatedVideos, setActivatedVideos] = useState<Set<string>>(new Set());
-  /** Slugs of image (non-video) case study cards whose image has finished loading. */
-  const [loadedImageCards, setLoadedImageCards] = useState<Set<string>>(new Set());
-  /** Cards at index >= 2 mount their media only after this flips true, so cards 0–1 get the bandwidth head start. */
-  const [deferredReady, setDeferredReady] = useState(false);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDeferredReady(true), 900);
-    return () => clearTimeout(t);
-  }, []);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const anyExpanded = expandedId !== null;
 
   const stripRef = useRef<HTMLDivElement>(null);
-  const sensitivityRef = useRef(SENSITIVITY);
-  sensitivityRef.current = SENSITIVITY;
+  const expandedRef = useRef(anyExpanded);
+  expandedRef.current = anyExpanded;
 
-  // On lg+: intercept ALL scroll gestures at the window level and redirect them to the
-  // horizontal strip. The page has no vertical scroll — everything goes left/right.
+  // Edge fades only show where more content exists: the left fade appears once
+  // scrolled, the right fade disappears at the end of the strip.
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(false);
+  useEffect(() => {
+    const strip = stripRef.current;
+    if (!strip) return;
+    const update = () => {
+      setAtStart(strip.scrollLeft <= 4);
+      setAtEnd(strip.scrollLeft + strip.clientWidth >= strip.scrollWidth - 4);
+    };
+    update();
+    strip.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+    return () => {
+      strip.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+    };
+  }, []);
+
+  // On lg+: redirect all scroll gestures (vertical or horizontal) to the horizontal strip.
   useEffect(() => {
     const strip = stripRef.current;
     if (!strip) return;
@@ -119,187 +233,230 @@ export default function Home() {
     const onWheel = (e: WheelEvent) => {
       if (window.innerWidth < 1024) return;
       e.preventDefault();
-      // Use whichever axis has more movement so both vertical and horizontal gestures work.
+      if (expandedRef.current) return; // page is frozen while a video is open
       const delta = Math.abs(e.deltaY) >= Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
-      strip.scrollBy({ left: delta * sensitivityRef.current, behavior: 'auto' });
+      strip.scrollBy({ left: delta * 0.7, behavior: 'auto' });
     };
 
-    const onScroll = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = strip;
-      setAtStart(scrollLeft <= 0);
-      setAtEnd(scrollLeft + clientWidth >= scrollWidth - 1);
-    };
-
-    onScroll();
-    // Attach to window so gestures anywhere on the page redirect to the strip.
     window.addEventListener('wheel', onWheel, { passive: false });
-    strip.addEventListener('scroll', onScroll);
-    return () => {
-      window.removeEventListener('wheel', onWheel);
-      strip.removeEventListener('scroll', onScroll);
-    };
+    return () => window.removeEventListener('wheel', onWheel);
   }, []);
 
-  // Lock vertical scroll on desktop so the page never moves up/down.
+  // Escape closes the expanded video.
   useEffect(() => {
-    if (window.innerWidth < 1024) return;
-    document.documentElement.style.overflowY = 'hidden';
-    return () => { document.documentElement.style.overflowY = ''; };
-  }, []);
+    if (!expandedId) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpandedId(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [expandedId]);
 
-  const fadeUp = (delay: number) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y: 14 },
-    animate: { opacity: 1, y: 0 },
-    transition: { duration: DURATION, ease: EASE, delay: shouldReduceMotion ? 0 : delay },
+  // Lock body scroll (mobile) while a video is open.
+  useEffect(() => {
+    if (!expandedId) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [expandedId]);
+
+  // `order` is the element's position in the reveal sequence (header 0 … footer 5).
+  const fadeUp = (order: number) => ({
+    initial: shouldReduceMotion
+      ? false
+      : { opacity: 0, y: ENTRANCE.y, filter: `blur(${ENTRANCE.blur}px)` },
+    animate: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      // A lingering `filter` (even blur(0px)) makes this element the containing
+      // block for fixed-position descendants, breaking the expanded video's
+      // viewport centering — so clear it back to `none` once the entrance ends.
+      transitionEnd: { filter: 'none' as const },
+    },
+    transition: {
+      duration: ENTRANCE.duration,
+      ease: [...ENTRANCE.ease] as [number, number, number, number],
+      delay: shouldReduceMotion ? 0 : ENTRANCE.baseDelay + order * ENTRANCE.stagger,
+    },
   });
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: '#F8F8F8' }}>
-      <SiteHeader />
+    <div
+      className="flex min-h-svh flex-col font-[family-name:var(--font-lector)] lg:h-dvh lg:overflow-hidden"
+      style={{
+        backgroundColor: 'var(--color-background)',
+        fontSize: '15px',
+        letterSpacing: '-0.01em',
+        lineHeight: '1.4',
+        color: 'var(--color-content)',
+      }}
+    >
+      {/* Header — studio name + New York clock */}
+      <motion.header className="px-6 pt-6 md:px-[72px] lg:pt-9" {...fadeUp(0)}>
+        <div className="flex items-baseline gap-6" style={dimStyle(anyExpanded)}>
+          <span style={{ color: 'var(--color-metadata)' }}>Studio Atteh Kojo</span>
+          <NewYorkClock />
+        </div>
+      </motion.header>
 
-      {/* Bio */}
-      <div
-        className="font-[family-name:var(--font-lector)] px-6 md:px-[72px]"
-        style={{
-          paddingTop: '48px',
-          paddingBottom: '32px',
-          maxWidth: '600px',
-          fontSize: '15px',
-          letterSpacing: '-0.01em',
-          lineHeight: '1.4',
-          color: 'var(--color-content)',
-        }}
-      >
-        <motion.p {...fadeUp(0.1)}>
-          <em>Making new things feel familiar and familiar things feel new,</em>
-          <br />
-          Kris is a design engineer tracing origins, elevating minimalism, and creating traditions of love and exploration.
-        </motion.p>
-        <motion.p style={{ marginTop: '24px' }} {...fadeUp(0.2)}>
-          CS &amp; Art at{' '}
-          <Link href="https://catalog.yale.edu/ycps/subjects-of-instruction/computing-arts/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
-            Yale
-          </Link>
-          , previously Product Design at{' '}
-          <Link href="https://kensho.com/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
-            Kensho
-          </Link>
-          {' '}&amp;{' '}
-          <Link href="https://www.spglobal.com/" target="_blank" rel="noopener noreferrer" className="text-[#000] hover:text-[var(--color-interactive)] transition-colors">
-            S&amp;P Global
-          </Link>
-        </motion.p>
-      </div>
+      <main className="flex flex-1 flex-col px-6 py-12 md:px-[72px] lg:min-h-0 lg:flex-row lg:items-center lg:px-0 lg:pb-0 lg:pt-16">
+        <div className="relative lg:min-w-0 lg:flex-1">
+          {/* Everything — bio included — scrolls horizontally on lg+; vertical stack on mobile.
+              The strip runs edge to edge so content clips at the screen, not mid-page. */}
+          <div
+            ref={stripRef}
+            className="scrollbar-hide flex flex-col gap-20 lg:flex-row lg:items-start lg:gap-[210px] lg:overflow-x-auto lg:px-[72px]"
+            style={{ ['--media-row-h' as string]: `${MEDIA_ROW_HEIGHT}px` }}
+          >
+            {/* Bio — first stop of the strip; portrait and text share the cards' grid lines */}
+            <motion.aside className="w-full shrink-0 lg:w-[420px]" {...fadeUp(1)}>
+              <div style={dimStyle(anyExpanded)}>
+                <div className="lg:flex lg:h-[var(--media-row-h)] lg:items-end">
+                  <div
+                    className="relative overflow-hidden"
+                    style={{ width: '72px', height: '72px', borderRadius: '2px' }}
+                  >
+                    <Image
+                      src="/gen3/portrait.png"
+                      alt="Portrait of Kristopher Aziabor"
+                      fill
+                      className="object-cover"
+                      sizes="72px"
+                    />
+                  </div>
+                </div>
+                <p className="mt-6 lg:mt-[14px]">
+              Making new things feel familiar and familiar things feel new,
+              <br />
+              <span style={{ color: 'var(--color-emphasis)' }}>Kristopher Aziabor</span> is a design
+              engineer tracing origins, elevating minimalism, and creating traditions of love and
+              exploration.
+            </p>
+            <p style={{ marginTop: '20px' }}>
+              After graduating from Yale University, he now works as a UI/UX Design Analyst in{' '}
+              <a
+                href="https://www.goldmansachs.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="whitespace-normal"
+              >
+                <Image
+                  src="/gen3/goldman-sachs.svg"
+                  alt=""
+                  width={15}
+                  height={15}
+                  unoptimized
+                  className="inline-block align-[-2px]"
+                  style={{ borderRadius: '2px', marginRight: '5px' }}
+                />
+                Goldman Sachs&apos;s
+              </a>{' '}
+              Asset and Wealth Management division.
+            </p>
+              </div>
+            </motion.aside>
 
-      {/* Case Studies — vertical stack until lg (half MacBook ~720px stays stacked) */}
-      <div className="relative px-6 md:px-[72px]" style={{ paddingTop: '24px', paddingBottom: '96px' }}>
-        {/* Left-edge fade — appears once the user has scrolled past the start */}
-        <div
-          className="hidden lg:block absolute left-0 top-0 bottom-0 pointer-events-none"
-          style={{
-            width: FADE_WIDTH,
-            background: 'linear-gradient(to left, transparent 0%, rgba(248,248,248,0.08) 25%, rgba(248,248,248,0.25) 50%, rgba(248,248,248,0.60) 75%, #F8F8F8 100%)',
-            zIndex: 10,
-            opacity: atStart ? 0 : 1,
-            transition: 'opacity 300ms ease-out',
-          }}
-        />
-        {/* Right-edge fade — signals more content exists beyond the viewport; disappears at end */}
-        <div
-          className="hidden lg:block absolute right-0 top-0 bottom-0 pointer-events-none"
-          style={{
-            width: FADE_WIDTH,
-            background: 'linear-gradient(to right, transparent 0%, rgba(248,248,248,0.08) 25%, rgba(248,248,248,0.25) 50%, rgba(248,248,248,0.60) 75%, #F8F8F8 100%)',
-            zIndex: 10,
-            opacity: atEnd ? 0 : 1,
-            transition: 'opacity 300ms ease-out',
-          }}
-        />
-        <div
-          ref={stripRef}
-          className="flex flex-col lg:flex-row lg:overflow-x-auto scrollbar-hide"
-          style={{ gap: '40px' }}
-        >
-          {caseStudies.map((study, i) => {
-            const media = study.landingMedia ?? study.heroMedia;
-            const isDeferred = i >= 2;
-            const shouldMountMedia = !isDeferred || deferredReady;
-            const overlayDelay = shouldReduceMotion
-              ? 0
-              : isDeferred
-                ? 1.5 + (i - 2) * 0.13
-                : 0.40 + i * 0.13;
-            const bgColor = study.heroBackgroundColor ?? '#1a1a1a';
-            const isVideo = media?.type === 'video';
-
+            {gen3Items.map((item, i) => {
+            const isVideo = item.media.type === 'vimeo';
+            const isExpanded = expandedId === item.id;
             return (
-              <MotionLink
-                key={study.slug}
-                href={`/work/${study.slug}`}
-                className="flex flex-col shrink-0 group w-full lg:w-[48vw]"
-                // y + scale only — no opacity, so iframes always paint
-                initial={shouldReduceMotion ? false : { y: 24, scale: 0.96 }}
-                animate={{ y: 0, scale: 1 }}
-                transition={{
-                  duration: DURATION,
-                  ease: EASE,
-                  delay: shouldReduceMotion ? 0 : 0.1 + i * 0.05,
+              <motion.article
+                key={item.id}
+                className="flex w-full shrink-0 flex-col lg:w-[var(--card-w)]"
+                style={{
+                  ['--card-w' as string]: `${CARD_WIDTH}px`,
+                  ['--media-w' as string]: `${item.media.thumbWidth}px`,
                 }}
+                {...fadeUp(2 + i)}
               >
                 <div
-                  className="relative w-full overflow-hidden transition-opacity duration-200 ease-out group-hover:opacity-70 lg:max-h-[calc(100vh-420px)]"
-                  style={{
-                    aspectRatio: String(CARD_ASPECT_RATIO),
-                    backgroundColor: bgColor,
-                    borderRadius: '2px',
-                  }}
+                  className="lg:flex lg:h-[var(--media-row-h)] lg:items-end"
+                  style={dimStyle(anyExpanded && !isExpanded)}
                 >
-                  {shouldMountMedia && (
-                    <HeroMedia
-                      media={media!}
-                      videoScrollPassthrough={isVideo}
-                      videoActivated={isVideo && activatedVideos.has(study.slug)}
-                      onVideoActivate={isVideo ? () => setActivatedVideos((prev) => new Set([...prev, study.slug])) : undefined}
-                      onImageLoad={!isVideo ? () => setLoadedImageCards((prev) => new Set([...prev, study.slug])) : undefined}
-                    />
-                  )}
-
-                  {/* Overlay: videos use time-based dissolve; images gate on onLoad so content is never revealed before it's ready */}
-                  {!shouldReduceMotion && (
-                    <motion.div
-                      className="absolute inset-0"
-                      style={{ backgroundColor: bgColor, zIndex: 2, pointerEvents: 'none' }}
-                      initial={{ opacity: 1 }}
-                      animate={{ opacity: isVideo ? 0 : (loadedImageCards.has(study.slug) ? 0 : 1) }}
-                      transition={{ duration: 0.7, ease: EASE, delay: isVideo ? overlayDelay : 0 }}
-                    />
-                  )}
+                  <CardMedia
+                    item={item}
+                    expanded={isExpanded}
+                    onToggle={
+                      isVideo
+                        ? () => setExpandedId(isExpanded ? null : item.id)
+                        : undefined
+                    }
+                    shouldReduceMotion={shouldReduceMotion ?? false}
+                  />
                 </div>
-
-                {/* Summary — wrapper handles entrance; <p> keeps CSS hover intact */}
-                <motion.div
-                  initial={shouldReduceMotion ? false : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6, ease: EASE, delay: overlayDelay + 0.1 }}
-                >
-                  <p
-                    className="font-[family-name:var(--font-lector)] group-hover:opacity-50 transition-opacity duration-200 ease-out"
-                    style={{
-                      marginTop: '12px',
-                      fontSize: '15px',
-                      letterSpacing: '-0.01em',
-                      lineHeight: '1.4',
-                      color: 'var(--color-content)',
-                    }}
-                  >
-                    {renderWithMarkdown(study.summary)}
-                  </p>
-                </motion.div>
-              </MotionLink>
+                <div style={dimStyle(anyExpanded)}>
+                  <h2 style={{ marginTop: '14px', fontSize: '15px', fontWeight: 400 }}>
+                    {item.href ? (
+                      <a
+                        href={item.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        // Classes (not inline style) so the terracotta hover can win
+                        className="text-[color:var(--color-emphasis)] hover:text-[color:var(--color-interactive)]"
+                      >
+                        {item.title}
+                      </a>
+                    ) : (
+                      <span style={{ color: 'var(--color-emphasis)' }}>{item.title}</span>
+                    )}
+                    {item.date && <span>, {item.date}</span>}
+                  </h2>
+                  {item.description.map((paragraph, pi) => (
+                    <p
+                      key={pi}
+                      className="whitespace-pre-line"
+                      style={{ marginTop: pi === 0 ? '14px' : '20px' }}
+                    >
+                      {renderWithLinks(paragraph)}
+                    </p>
+                  ))}
+                </div>
+              </motion.article>
             );
           })}
+          </div>
+
+          {/* Soft edge fades over the strip (lg+). Each side only shows while more
+              content exists in that direction, and both hide while a video is open. */}
+          <div
+            aria-hidden
+            className="hidden lg:block absolute inset-y-0 left-0 pointer-events-none"
+            style={{
+              width: EDGE_FADE_WIDTH,
+              background: 'linear-gradient(to right, var(--color-background), transparent)',
+              opacity: atStart || anyExpanded ? 0 : 1,
+              transition: shouldReduceMotion ? undefined : 'opacity 300ms ease-out',
+            }}
+          />
+          <div
+            aria-hidden
+            className="hidden lg:block absolute inset-y-0 right-0 pointer-events-none"
+            style={{
+              width: EDGE_FADE_WIDTH,
+              background: 'linear-gradient(to left, var(--color-background), transparent)',
+              opacity: atEnd || anyExpanded ? 0 : 1,
+              transition: shouldReduceMotion ? undefined : 'opacity 300ms ease-out',
+            }}
+          />
         </div>
-      </div>
+      </main>
+
+      {/* Footer — Archive / Photo / email sit at the bottom on every breakpoint */}
+      <motion.footer className="px-6 pb-8 md:px-[72px]" {...fadeUp(5)}>
+        <LinkRow className="flex flex-wrap items-baseline gap-5 lg:gap-6" dimmed={anyExpanded} />
+      </motion.footer>
+
+      {/* Click anywhere — including the video itself — closes the expanded state */}
+      {anyExpanded && (
+        <div
+          className="fixed inset-0 z-40 cursor-pointer"
+          onClick={() => setExpandedId(null)}
+          aria-hidden
+        />
+      )}
     </div>
   );
 }
