@@ -11,6 +11,11 @@ import { CaseStudyBody } from '@/components/case-study/CaseStudyBody';
 import { CaseStudyTOC } from '@/components/case-study/CaseStudyTOC';
 import type { CaseStudy, CaseStudyHeroMedia, CaseStudyHeroChrome } from '@/types/case-study';
 import { verifyCaseStudyPassword } from './actions';
+import {
+  vimeoCoverEmbedParams,
+  vimeoCoverIframeSize,
+  vimeoPlayerSrc,
+} from '@/lib/vimeo-embed';
 
 // ease-out-expo — cinematic, responsive feel
 const EASE = [0.19, 1, 0.22, 1] as const;
@@ -104,16 +109,18 @@ function HeroMedia({
   }
   if (media.type === 'video' && media.vimeoId) {
     const hasAudio = media.hasAudio ?? false;
-    const embedParams = new URLSearchParams({
-      ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1', playsinline: '1' }),
-      ...(media.posterTime != null && hasAudio ? { t: String(media.posterTime) } : {}),
-    });
-    const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
+    const embedUrl = vimeoPlayerSrc(
+      media.vimeoId,
+      vimeoCoverEmbedParams({ hasAudio, posterTime: media.posterTime })
+    );
+    const iframeSize = vimeoCoverIframeSize(videoAspectRatio);
     return (
       <div className="relative w-full overflow-hidden" style={{ aspectRatio: String(videoAspectRatio) }}>
         <iframe
           src={embedUrl}
           title={media.alt}
+          width={iframeSize.width}
+          height={iframeSize.height}
           className="absolute inset-0 w-full h-full border-0"
           allow={hasAudio ? 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope' : 'autoplay; fullscreen; picture-in-picture'}
           allowFullScreen
