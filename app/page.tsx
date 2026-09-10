@@ -7,6 +7,11 @@ import { motion, useReducedMotion } from 'framer-motion';
 import SiteHeader from '@/components/navigation/SiteHeader';
 import { caseStudies } from '@/content/case-studies';
 import type { CaseStudyHeroMedia, CaseStudyLandingMedia } from '@/types/case-study';
+import {
+  vimeoCoverEmbedParams,
+  vimeoCoverIframeSize,
+  vimeoPlayerSrc,
+} from '@/lib/vimeo-embed';
 
 const CARD_ASPECT_RATIO = 4 / 3;
 
@@ -58,16 +63,19 @@ function HeroMedia({
   }
   if (media.type === 'video' && media.vimeoId) {
     const hasAudio = media.hasAudio ?? false;
-    const embedParams = new URLSearchParams({
-      ...(hasAudio ? {} : { background: '1', autoplay: '1', loop: '1', muted: '1', playsinline: '1' }),
-    });
-    const embedUrl = `https://player.vimeo.com/video/${media.vimeoId}?${embedParams}`;
+    const embedUrl = vimeoPlayerSrc(
+      media.vimeoId,
+      vimeoCoverEmbedParams({ hasAudio })
+    );
+    const iframeSize = vimeoCoverIframeSize(CARD_ASPECT_RATIO);
     const allowScroll = videoScrollPassthrough && !videoActivated;
     return (
       <>
         <iframe
           src={embedUrl}
           title={media.alt}
+          width={iframeSize.width}
+          height={iframeSize.height}
           className="absolute inset-0 w-full h-full border-0"
           style={{ pointerEvents: allowScroll ? 'none' : 'auto' }}
           allow="autoplay; fullscreen; picture-in-picture"
