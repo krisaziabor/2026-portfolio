@@ -60,7 +60,7 @@ export const gen3Items: Gen3Item[] = [
     href: 'https://www.spglobal.com',
     date: 'September to December 2025',
     description: [
-      "AI-generated financial reports are only useful if users trust what's in them. While interning at [Kensho](https://kensho.com), I designed citation and data attribution systems across two financial products that let users trace every claim and calculation back to its source.",
+      "AI-generated financial reports are only useful if users trust what's in them. While interning at Kensho, I designed citation and data attribution systems across two financial products that let users trace every claim and calculation back to its source.",
       'Led 2 workshops on AI design tools, including one for an audience of 100 S&P Global designers. In addition, I represented Kensho on an AI design panel alongside 2 senior designers with a combined 20+ years of experience.',
     ],
     media: {
@@ -69,22 +69,10 @@ export const gen3Items: Gen3Item[] = [
       alt: 'S&P Global logo',
       width: 300,
       height: 300,
-      thumbWidth: 42,
+      thumbWidth: 88, // matches the bio portrait
       background: 'transparent',
       href: 'https://www.spglobal.com',
     },
-    extraMedia: [
-      {
-        type: 'image',
-        src: '/gen3/kensho.png',
-        alt: 'Kensho logo',
-        width: 150,
-        height: 150,
-        thumbWidth: 42,
-        background: 'transparent',
-        href: 'https://kensho.com',
-      },
-    ],
   },
   {
     id: 'design-at-yale',
@@ -101,7 +89,7 @@ export const gen3Items: Gen3Item[] = [
       alt: 'Design at Yale logo',
       width: 1,
       height: 1,
-      thumbWidth: 42,
+      thumbWidth: 88, // matches the bio portrait
       background: '#FFFFFF',
       href: 'https://designatyale.com',
     },

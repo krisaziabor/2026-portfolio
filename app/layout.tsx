@@ -4,7 +4,7 @@ import '@/styles/globals.css';
 import { AgentationWrapper } from '@/components/AgentationWrapper';
 
 export const viewport: Viewport = {
-  themeColor: '#0A0A0A',
+  themeColor: '#F8F8F8',
   viewportFit: 'cover',
 };
 
@@ -12,10 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://www.krisaziabor.com'),
   title: 'Kristopher Aziabor',
   description: 'Making new things feel familiar and familiar things feel new. Kristopher Aziabor, design engineer.',
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-icon.png',
-  },
+  // Icons come from app/favicon.ico, app/icon.png and app/apple-icon.png (file conventions)
   openGraph: {
     title: 'Kristopher Aziabor',
     description: 'Making new things feel familiar and familiar things feel new. Kristopher Aziabor, design engineer.',
