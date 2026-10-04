@@ -26,26 +26,27 @@
 }
 
 @theme {
-  --color-content: #404040;
-  --color-metadata: #6B6B6B;
+  --color-content: rgba(0, 0, 0, 0.75);
+  --color-metadata: rgba(0, 0, 0, 0.75);
   --color-interactive: #8B6B5A;
   --color-background: #F8F8F8;
-}
-
-html {
-  scroll-behavior: smooth;
+  --color-link: rgba(0, 0, 0, 0.75);
+  --color-emphasis: #000000;
 }
 
 :root {
-  /* Colors */
-  --color-content: #404040;
-  --color-metadata: #6B6B6B;
+  /* Colors — light, single-page site.
+     All text runs at 75% black; --color-emphasis is full black, reserved for
+     "Kristopher Aziabor" in the bio. */
+  --color-content: rgba(0, 0, 0, 0.75);
+  --color-metadata: rgba(0, 0, 0, 0.75);
   --color-interactive: #8B6B5A;
   --color-background: #F8F8F8;
+  --color-link: rgba(0, 0, 0, 0.75);
+  --color-emphasis: #000000;
 
   /* Typography */
-  --font-lector: "Lector FSL", Georgia, serif;
-  --font-body: var(--font-lector);
+  --font-body: "Lector FSL", Georgia, serif;
   --font-size-base: 16px;
   --tracking-body: -0.01em;
   --leading-body: 1.4;
@@ -65,6 +66,37 @@ html {
 
   /* Link text breaking toggle - set to 'nowrap' to prevent breaks, 'normal' to allow wrapping */
   --link-white-space: nowrap;
+}
+
+/* Page scrollbar — kept, but quiet: a thin muted thumb on no track. */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
+  }
+}
+
+/* Lenis (inertial scroll on the Peek home variants) */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
 }
 
 .scrollbar-hide {
@@ -92,33 +124,54 @@ body {
    have higher cascade priority and can override per-element. */
 @layer base {
   a {
-    color: #000000;
+    color: var(--color-link);
     white-space: var(--link-white-space, nowrap);
     transition: color 150ms ease;
   }
   a:hover {
     color: var(--color-interactive);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    a,
+    body {
+      transition: none;
+    }
+  }
 }
 
-/* Photo page: dark body so overscroll reveals #141414, not #F8F8F8 */
-body:has(.photo-page) {
-  background-color: #141414;
+/* Expandable video thumb — slight scale on hover so it reads as pressable.
+   Applied to an inner wrapper so Framer Motion's layout transform is untouched. */
+.video-thumb-hover {
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 150ms ease;
 }
 
-/* Academy page links: allow title text to wrap */
-.academy-page a {
-  white-space: normal;
+@media (hover: hover) and (pointer: fine) {
+  .video-thumb-hover:hover {
+    transform: scale(1.04);
+    will-change: transform;
+  }
 }
 
-/* Photo page: suppress the terracotta hover — nav links there dim via opacity instead */
-.photo-page a:hover {
-  color: inherit;
+.video-thumb-hover:active {
+  transform: scale(0.97);
 }
 
-/* Academy grid: group cards always show the terracotta left indicator on touch devices */
-@media (hover: none) {
-  .academy-group-wrapper {
-    box-shadow: inset 3px 0 0 var(--color-interactive) !important;
+.video-thumb-hover[data-expanded='true'],
+.video-thumb-hover[data-expanded='true']:hover,
+.video-thumb-hover[data-expanded='true']:active {
+  transform: none;
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-thumb-hover {
+    transition: none;
+  }
+  .video-thumb-hover:hover,
+  .video-thumb-hover:active {
+    transform: none;
   }
 }
